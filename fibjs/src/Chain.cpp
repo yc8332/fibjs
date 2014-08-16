@@ -13,9 +13,12 @@ namespace fibjs
 {
 
 result_t Chain_base::_new(v8::Local<v8::Array> hdlrs,
-                          obj_ptr<Chain_base> &retVal)
+                          obj_ptr<Chain_base> &retVal,
+                          v8::Local<v8::Object> This)
 {
     obj_ptr<Chain_base> chain = new Chain();
+    chain->wrap(This);
+
     result_t hr = chain->append(hdlrs);
     if (hr < 0)
         return hr;
@@ -57,10 +60,10 @@ result_t Chain::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     };
 
     if (m_array.size() == 0)
-        return Runtime::setError("empty chain.");
+        return CHECK_ERROR(Runtime::setError("empty chain."));
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncInvoke(this, v, ac))->post(0);
 }

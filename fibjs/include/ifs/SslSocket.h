@@ -1,6 +1,7 @@
 /***************************************************************************
- *   Copyright (C) 2012 by Leo Hoo                                         *
- *   lion@9465.net                                                         *
+ *                                                                         *
+ *   This file was automatically generated using idlc.js                   *
+ *   PLEASE DO NOT EDIT!!!!                                                *
  *                                                                         *
  ***************************************************************************/
 
@@ -25,8 +26,8 @@ class SslSocket_base : public Stream_base
 {
 public:
 	// SslSocket_base
-	static result_t _new(v8::Local<v8::Array> certs, obj_ptr<SslSocket_base>& retVal);
-	static result_t _new(X509Cert_base* crt, PKey_base* key, obj_ptr<SslSocket_base>& retVal);
+	static result_t _new(v8::Local<v8::Array> certs, obj_ptr<SslSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(X509Cert_base* crt, PKey_base* key, obj_ptr<SslSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_verification(int32_t& retVal) = 0;
 	virtual result_t set_verification(int32_t newVal) = 0;
 	virtual result_t get_ca(obj_ptr<X509Cert_base>& retVal) = 0;
@@ -138,14 +139,14 @@ namespace fibjs
 
 		OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate));
 
-		hr = _new(v0, vr);
+		hr = _new(v0, vr, args.This());
 
 		METHOD_OVER(2, 2);
 
 		ARG(obj_ptr<X509Cert_base>, 0);
 		ARG(obj_ptr<PKey_base>, 1);
 
-		hr = _new(v0, v1, vr);
+		hr = _new(v0, v1, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

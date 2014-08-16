@@ -1,351 +1,273 @@
-/*
- * utils.cpp
- *
- *  Created on: Dec 10, 2013
- *      Author: lion
- */
-
-#include "ifs/util.h"
-#include "ifs/encoding.h"
-#include <v8/v8.h>
-#include <zlib.h>
-#include <sqlite3.h>
-#include <ev.h>
-#include <gd.h>
-#include <jpeglib.h>
-#include <png.h>
-#include <pcre.h>
-#include <tiffvers.h>
-#include <mongo/mongo.h>
-#include <polarssl/version.h>
+#include "utils.h"
+#include "object.h"
+#include "ifs/console.h"
+#include <string.h>
+#include <stdio.h>
+#include "utf8.h"
 
 namespace fibjs
 {
 
-inline void newline(std::string &strBuffer, int padding)
+static std::string fmtString(result_t hr, const char *str, int len = -1)
 {
-    static char s_spc[] = "                                                                ";
-    int n, n1;
+    std::string s;
+    if (len < 0)
+        len = (int) qstrlen(str);
 
-    strBuffer.append("\n", 1);
-    if (padding > 0)
-    {
-        n = padding;
-        while (n)
-        {
-            n1 = n > 64 ? 64 : n;
-            strBuffer.append(s_spc, n1);
-            n -= n1;
-        }
-    }
+    s.resize(len + 16);
+    s.resize(sprintf(&s[0], "[%d] %s", hr, str));
+
+    return s;
 }
 
-std::string json_format(v8::Local<v8::Value> obj)
+static std::string fmtString(result_t hr, std::string &str)
 {
-    const char *p;
-    int padding = 0;
-    char ch;
-    bool bStrMode = false;
-    bool bNewLine = false;
-    const int tab_size = 2;
-    std::string strBuffer;
-    std::string s;
+    return fmtString(hr, str.c_str(), (int) str.length());
+}
 
-    result_t hr = encoding_base::jsonEncode(obj, s);
-    if (hr < 0)
-        return "[Circular]";
-
-    p = s.c_str();
-    while ((ch = *p++) != 0)
+std::string getResultMessage(result_t hr)
+{
+    static const char *s_errors[] =
     {
-        if (bStrMode)
+        "",
+        // CALL_E_BADPARAMCOUNT
+        "Invalid number of parameters.",
+        // CALL_E_PARAMNOTOPTIONAL
+        "Parameter not optional.",
+        // CALL_E_BADVARTYPE
+        "The input parameter is not a valid type.",
+        // CALL_E_INVALIDARG
+        "Invalid argument.",
+        // CALL_E_TYPEMISMATCH
+        "The argument could not be coerced to the specified type.",
+        // CALL_E_OUTRANGE
+        "Value is out of range.",
+
+        // CALL_E_CONSTRUCTOR
+        "Constructor cannot be called as a function.",
+        // CALL_E_NOTINSTANCE
+        "Object is not an instance of declaring class.",
+        // CALL_E_INVALID_CALL
+        "Invalid procedure call.",
+        // CALL_E_REENTRANT_CALL
+        "Re-entrant calls are not allowed.",
+        // CALL_E_INVALID_DATA
+        "Invalid input data.",
+        // CALL_E_BADINDEX
+        "Index was out of range.",
+        // CALL_E_OVERFLOW
+        "Memory overflow error.",
+        // CALL_E_EMPTY
+        "Collection is empty.",
+        // CALL_E_PENDDING
+        "Operation now in progress.",
+        // CALL_E_NOSYNC
+        "Operation not support synchronous call.",
+        // CALL_E_NOASYNC
+        "Operation not support asynchronous call.",
+        // CALL_E_INTERNAL
+        "Internal error.",
+        // CALL_E_RETURN_TYPE
+        "Invalid return type.",
+        // CALL_E_EXCEPTION
+        "Exception occurred.",
+        // CALL_E_JAVASCRIPT
+        "Javascript error."
+    };
+
+    if (hr == CALL_E_EXCEPTION)
+    {
+        std::string s = Runtime::errMessage();
+
+        if (s.length() > 0)
+            return s;
+    }
+
+    if (hr > CALL_E_MIN && hr < CALL_E_MAX)
+        return fmtString(hr, s_errors[CALL_E_MAX - hr]);
+
+    hr = -hr;
+
+#ifdef _WIN32
+    WCHAR MsgBuf[1024];
+
+    if (FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                       NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), MsgBuf, 1024, NULL ))
+    {
+        std::string s = fmtString(hr, UTF8_A(MsgBuf));
+        return s;
+    }
+
+    return fmtString(hr, "Unknown error.");
+#else
+    return fmtString(hr, strerror(hr));
+#endif
+}
+
+v8::Local<v8::Value> ThrowResult(result_t hr)
+{
+    v8::Local<v8::Value> e = v8::Exception::Error(
+                                 v8::String::NewFromUtf8(isolate, getResultMessage(hr).c_str()));
+    e->ToObject()->Set(v8::String::NewFromUtf8(isolate, "number"), v8::Int32::New(isolate, -hr));
+
+    return isolate->ThrowException(e);
+}
+
+inline const char *ToCString(const v8::String::Utf8Value &value)
+{
+    return *value ? *value : "<string conversion failed>";
+}
+
+std::string GetException(v8::TryCatch &try_catch, result_t hr)
+{
+    if (try_catch.HasCaught())
+    {
+        v8::String::Utf8Value exception(try_catch.Exception());
+
+        v8::Local<v8::Message> message = try_catch.Message();
+        if (message.IsEmpty())
+            return ToCString(exception);
+        else
         {
-            if (ch == '\\' && *p == '\"')
+            v8::Local<v8::Value> trace_value = try_catch.StackTrace();
+
+            if (!IsEmpty(trace_value))
             {
-                strBuffer.append(&ch, 1);
-                ch = *p++;
+                v8::String::Utf8Value stack_trace(trace_value);
+                return ToCString(stack_trace);
             }
-            else if (ch == '\"')
-                bStrMode = false;
+
+            std::string strError;
+
+            v8::String::Utf8Value filename(message->GetScriptResourceName());
+
+            if (qstrcmp(ToCString(exception), "SyntaxError: ", 13))
+            {
+                strError.append(ToCString(exception));
+                strError.append("\n    at ");
+            }
+            else
+            {
+                strError.append((ToCString(exception) + 13));
+                strError.append("\n    at ");
+            }
+
+            strError.append(ToCString(filename));
+            int lineNumber = message->GetLineNumber();
+            if (lineNumber > 0)
+            {
+                char numStr[32];
+
+                strError.append(":", 1);
+                sprintf(numStr, "%d", lineNumber);
+                strError.append(numStr);
+                strError.append(":", 1);
+                sprintf(numStr, "%d", message->GetStartColumn() + 1);
+                strError.append(numStr);
+            }
+
+            return strError;
+        }
+    }
+    else if (hr < 0)
+        return getResultMessage(hr);
+
+    return "";
+}
+
+result_t throwSyntaxError(v8::TryCatch &try_catch)
+{
+    v8::String::Utf8Value exception(try_catch.Exception());
+
+    v8::Local<v8::Message> message = try_catch.Message();
+    if (message.IsEmpty())
+        ThrowError(ToCString(exception));
+    else
+    {
+        std::string strError;
+
+        v8::String::Utf8Value filename(message->GetScriptResourceName());
+
+        if (qstrcmp(ToCString(exception), "SyntaxError: ", 13))
+        {
+            strError.append(ToCString(exception));
+            strError.append("\n    at ");
         }
         else
         {
-            switch (ch)
-            {
-            case '[':
-                if (*p == ']')
-                {
-                    strBuffer.append(&ch, 1);
-                    ch = *p ++;
-                    break;
-                }
-
-                bNewLine = true;
-                padding += tab_size;
-                break;
-            case '{':
-                if (*p == '}')
-                {
-                    strBuffer.append(&ch, 1);
-                    ch = *p ++;
-                    break;
-                }
-
-                bNewLine = true;
-                padding += tab_size;
-                break;
-            case '}':
-            case ']':
-                padding -= tab_size;
-                newline(strBuffer, padding);
-                break;
-            case ',':
-                bNewLine = true;
-                break;
-            case ':':
-                strBuffer.append(&ch, 1);
-                ch = ' ';
-                break;
-            case '\"':
-                bStrMode = true;
-                break;
-            }
+            strError.append((ToCString(exception) + 13));
+            strError.append("\n    at ");
         }
 
-        strBuffer.append(&ch, 1);
-
-        if (bNewLine)
+        strError.append(ToCString(filename));
+        int lineNumber = message->GetLineNumber();
+        if (lineNumber > 0)
         {
-            newline(strBuffer, padding);
-            bNewLine = false;
+            char numStr[32];
+
+            strError.append(":", 1);
+            sprintf(numStr, "%d", lineNumber);
+            strError.append(numStr);
+            strError.append(":", 1);
+            sprintf(numStr, "%d", message->GetStartColumn() + 1);
+            strError.append(numStr);
         }
+
+        return Runtime::setError(strError);
+    }
+
+    return CHECK_ERROR(CALL_E_JAVASCRIPT);
+}
+
+void ReportException(v8::TryCatch &try_catch, result_t hr)
+{
+    if (try_catch.HasCaught() ||  hr < 0)
+        asyncLog(console_base::_ERROR, GetException(try_catch, hr));
+}
+
+std::string traceInfo()
+{
+    v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
+            isolate, 10, v8::StackTrace::kOverview);
+    int count = stackTrace->GetFrameCount();
+    int i;
+    std::string strBuffer;
+
+    for (i = 0; i < count; i++)
+    {
+        char numStr[32];
+        v8::Local<v8::StackFrame> f = stackTrace->GetFrame(i);
+
+        v8::String::Utf8Value funname(f->GetFunctionName());
+        v8::String::Utf8Value filename(f->GetScriptName());
+
+        strBuffer.append("\n    at ");
+
+        if (**funname)
+        {
+            strBuffer.append(*funname);
+            strBuffer.append(" (", 2);
+        }
+
+        if (*filename)
+        {
+            strBuffer.append(*filename);
+            strBuffer.append(":", 1);
+        }
+        else
+            strBuffer.append("[eval]:", 7);
+
+        sprintf(numStr, "%d", f->GetLineNumber());
+        strBuffer.append(numStr);
+        strBuffer.append(":", 1);
+        sprintf(numStr, "%d", f->GetColumn());
+        strBuffer.append(numStr);
+
+        if (**funname)
+            strBuffer.append(")", 1);
     }
 
     return strBuffer;
-}
-
-result_t util_base::format(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args,
-                           std::string &retVal)
-{
-    const char *s1;
-    char ch;
-    int argc = args.Length();
-    int idx = 1;
-
-    if (fmt == NULL)
-    {
-        idx = 0;
-        fmt = "";
-    }
-    else if (argc == 1)
-    {
-        retVal = fmt;
-        return 0;
-    }
-
-    const char *s = fmt;
-
-    while (1)
-    {
-        s1 = s;
-        while ((ch = *s++) && (ch != '%'));
-
-        retVal.append(s1, s - s1 - 1);
-
-        if (ch == '%')
-        {
-            switch (ch = *s++)
-            {
-            case 's':
-                if (idx < argc)
-                {
-                    v8::String::Utf8Value s(args[idx++]);
-                    if (*s)
-                        retVal.append(*s);
-                }
-                else
-                    retVal.append("%s", 2);
-                break;
-            case 'd':
-                if (idx < argc)
-                {
-                    v8::String::Utf8Value s(args[idx++]->ToNumber());
-                    if (*s)
-                        retVal.append(*s);
-                }
-                else
-                    retVal.append("%d", 2);
-                break;
-            case 'j':
-                if (idx < argc)
-                {
-                    std::string s;
-                    s = json_format(args[idx++]);
-                    retVal.append(s);
-                }
-                else
-                    retVal.append("%j", 2);
-                break;
-            default:
-                retVal.append("%", 1);
-            case '%':
-                retVal.append(&ch, 1);
-                break;
-            }
-        }
-        else
-            break;
-    }
-
-    while (idx < argc)
-    {
-        if (!retVal.empty())
-            retVal.append(" ", 1);
-
-        bool v;
-
-        isString(args[idx], v);
-
-        if (v)
-        {
-            v8::String::Utf8Value s(args[idx++]);
-            retVal.append(*s);
-        }
-        else
-        {
-            std::string s;
-            s = json_format(args[idx++]);
-
-            retVal.append(s);
-        }
-    }
-
-    return 0;
-}
-
-result_t util_base::format(const v8::FunctionCallbackInfo<v8::Value> &args, std::string &retVal)
-{
-    return format(NULL, args, retVal);
-}
-
-result_t util_base::isArray(v8::Local<v8::Value> v, bool &retVal)
-{
-    retVal = v->IsArray();
-    return 0;
-}
-
-result_t util_base::isBoolean(v8::Local<v8::Value> v, bool &retVal)
-{
-    retVal = v->IsBoolean() || v->IsBooleanObject();
-    return 0;
-}
-
-result_t util_base::isNull(v8::Local<v8::Value> v, bool &retVal)
-{
-    retVal = v->IsNull();
-    return 0;
-}
-
-result_t util_base::isNullOrUndefined(v8::Local<v8::Value> v, bool &retVal)
-{
-    retVal = v->IsNull() || v->IsUndefined();
-    return 0;
-}
-
-result_t util_base::isNumber(v8::Local<v8::Value> v, bool &retVal)
-{
-    retVal = v->IsNumber() || v->IsNumberObject();
-    return 0;
-}
-
-result_t util_base::isString(v8::Local<v8::Value> v, bool &retVal)
-{
-    retVal = v->IsString() || v->IsStringObject();
-    return 0;
-}
-
-result_t util_base::isUndefined(v8::Local<v8::Value> v, bool &retVal)
-{
-    retVal = v->IsUndefined();
-    return 0;
-}
-
-result_t util_base::isRegExp(v8::Local<v8::Value> v, bool &retVal)
-{
-    retVal = v->IsRegExp();
-    return 0;
-}
-
-result_t util_base::isObject(v8::Local<v8::Value> v, bool &retVal)
-{
-    retVal = v->IsObject();
-    return 0;
-}
-
-result_t util_base::isDate(v8::Local<v8::Value> v, bool &retVal)
-{
-    retVal = v->IsDate();
-    return 0;
-}
-
-result_t util_base::isFunction(v8::Local<v8::Value> v, bool &retVal)
-{
-    retVal = v->IsFunction();
-    return 0;
-}
-
-result_t util_base::isBuffer(v8::Local<v8::Value> v, bool &retVal)
-{
-    retVal = !!Buffer_base::getInstance(v);
-    return 0;
-}
-
-#define _STR(s) #s
-#define STR(s)  _STR(s)
-
-static const char s_version[] = "0.1.0";
-
-result_t util_base::buildInfo(v8::Local<v8::Object> &retVal)
-{
-    retVal = v8::Object::New(isolate);
-
-    retVal->Set(v8::String::NewFromUtf8(isolate, "fibjs"), v8::String::NewFromUtf8(isolate, s_version));
-
-#ifdef GIT_INFO
-    retVal->Set(v8::String::NewFromUtf8(isolate, "git"), v8::String::NewFromUtf8(isolate, STR(GIT_INFO)));
-#endif
-
-    retVal->Set(v8::String::NewFromUtf8(isolate, "build"),
-                v8::String::NewFromUtf8(isolate, __DATE__ " " __TIME__));
-
-#ifndef NDEBUG
-    retVal->Set(v8::String::NewFromUtf8(isolate, "debug"), v8::True(isolate));
-#endif
-
-    {
-        v8::Local<v8::Object> vender = v8::Object::New(isolate);
-
-        retVal->Set(v8::String::NewFromUtf8(isolate, "vender"), vender);
-
-        vender->Set(v8::String::NewFromUtf8(isolate, "ev"),
-                    v8::String::NewFromUtf8(isolate,  STR(EV_VERSION_MAJOR) "." STR(EV_VERSION_MINOR)));
-        vender->Set(v8::String::NewFromUtf8(isolate, "gd"), v8::String::NewFromUtf8(isolate, GD_VERSION_STRING));
-        vender->Set(v8::String::NewFromUtf8(isolate, "jpeg"), v8::String::NewFromUtf8(isolate,
-                    STR(JPEG_LIB_VERSION_MAJOR) "." STR(JPEG_LIB_VERSION_MINOR)));
-        vender->Set(v8::String::NewFromUtf8(isolate, "mongo"), v8::String::NewFromUtf8(isolate,
-                    STR(MONGO_MAJOR) "." STR(MONGO_MINOR)));
-        vender->Set(v8::String::NewFromUtf8(isolate, "pcre"), v8::String::NewFromUtf8(isolate,
-                    STR(PCRE_MAJOR) "." STR(PCRE_MINOR)));
-        vender->Set(v8::String::NewFromUtf8(isolate, "png"), v8::String::NewFromUtf8(isolate, PNG_LIBPNG_VER_STRING));
-        vender->Set(v8::String::NewFromUtf8(isolate, "polarssl"), v8::String::NewFromUtf8(isolate, POLARSSL_VERSION_STRING));
-        vender->Set(v8::String::NewFromUtf8(isolate, "sqlite"), v8::String::NewFromUtf8(isolate, SQLITE_VERSION));
-        vender->Set(v8::String::NewFromUtf8(isolate, "tiff"), v8::String::NewFromUtf8(isolate, TIFFLIB_VERSION_STR));
-        vender->Set(v8::String::NewFromUtf8(isolate, "uuid"), v8::String::NewFromUtf8(isolate, "1.6.2"));
-        vender->Set(v8::String::NewFromUtf8(isolate, "v8"), v8::String::NewFromUtf8(isolate, v8::V8::GetVersion()));
-        vender->Set(v8::String::NewFromUtf8(isolate, "zlib"), v8::String::NewFromUtf8(isolate, ZLIB_VERSION));
-    }
-
-    return 0;
 }
 
 }

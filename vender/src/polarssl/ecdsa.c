@@ -1,7 +1,7 @@
 /*
  *  Elliptic curve DSA
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -29,7 +29,11 @@
  * SEC1 http://www.secg.org/index.php?action=secg,docs_secg
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_ECDSA_C)
 
@@ -66,7 +70,7 @@ static const md_info_t *md_info_by_size( size_t min_size )
 
     return( md_picked );
 }
-#endif
+#endif /* POLARSSL_ECDSA_DETERMINISTIC */
 
 /*
  * Derive a suitable integer for group grp from a buffer of length len
@@ -76,7 +80,7 @@ static int derive_mpi( const ecp_group *grp, mpi *x,
                        const unsigned char *buf, size_t blen )
 {
     int ret;
-    size_t n_size = (grp->nbits + 7) / 8;
+    size_t n_size = ( grp->nbits + 7 ) / 8;
     size_t use_size = blen > n_size ? n_size : blen;
 
     MPI_CHK( mpi_read_binary( x, buf, use_size ) );
@@ -143,7 +147,7 @@ int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
         blind_tries = 0;
         do
         {
-            size_t n_size = (grp->nbits + 7) / 8;
+            size_t n_size = ( grp->nbits + 7 ) / 8;
             MPI_CHK( mpi_fill_random( &t, n_size, f_rng, p_rng ) );
             MPI_CHK( mpi_shift_r( &t, 8 * n_size - grp->nbits ) );
 
@@ -494,6 +498,6 @@ int ecdsa_self_test( int verbose )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif /* defined(POLARSSL_ECDSA_C) */
+#endif /* POLARSSL_ECDSA_C */

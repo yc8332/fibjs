@@ -10,17 +10,19 @@ var encoding = require('encoding');
 
 var m = new http.Request();
 
+var jr;
+
 m.value = 'test/tttt/tttt/';
 m.setHeader("Content-Type", "application/json, charset=utf-8;");
-m.body.write(new Buffer(encoding.jsonEncode({
+m.body.write(encoding.jsonEncode({
 	method: 'aaaa',
 	params: [100, 200],
 	id: 1234
-})));
+}));
 
 describe("rpc", function() {
 	it("function", function() {
-		var jr = rpc.json(function(m, p1, p2) {
+		jr = rpc.json(function(m, p1, p2) {
 			m.value = '';
 			return p1 + ',' + p2;
 		});
@@ -65,11 +67,11 @@ describe("rpc", function() {
 
 		m.value = '/xhr/test';
 		m.setHeader("Content-Type", "application/json");
-		m.body.write(new Buffer(encoding.jsonEncode({
+		m.body.write(encoding.jsonEncode({
 			method: 'fun',
 			params: [100, 200],
 			id: 1234
-		})));
+		}));
 
 		jr.invoke(m);
 
@@ -83,11 +85,11 @@ describe("rpc", function() {
 
 		m.value = '/xhr/test';
 		m.setHeader("Content-Type", "application/x-www-form-urlencoded");
-		m.body.write(new Buffer("jsonrpc=" + encoding.encodeURIComponent(encoding.jsonEncode({
+		m.body.write("jsonrpc=" + encoding.encodeURIComponent(encoding.jsonEncode({
 			method: 'fun',
 			params: [100, 200],
 			id: 1234
-		}))));
+		})));
 
 		jr.invoke(m);
 
@@ -111,11 +113,10 @@ describe("rpc", function() {
 		var bs = new io.BufferedStream(s);
 		bs.EOL = '\r\n';
 
-		for (i = 0; i < 50; i++) {
+		for (var i = 0; i < 50; i++) {
 			var req = new http.Request();
 			req.addHeader("content-type", "application/json");
-			req.body.write(new Buffer(
-				'{"method":"update","params":[{}]}'));
+			req.body.write('{"method":"update","params":[{}]}');
 			req.sendTo(s);
 			req.response.readFrom(bs);
 		}

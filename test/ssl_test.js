@@ -44,6 +44,7 @@ describe('ssl', function() {
 
 		var svr = new net.TcpServer(9080, function(s) {
 			var ss;
+			var buf;
 
 			try {
 				ss = sss.accept(s);
@@ -107,14 +108,14 @@ describe('ssl', function() {
 	it("echo", function() {
 		sss.verification = ssl.VERIFY_NONE;
 
-		for (i = 0; i < 10; i++) {
+		for (var i = 0; i < 10; i++) {
 			var s1 = new net.Socket();
 			s1.connect("127.0.0.1", 9080);
 
 			var ss = new ssl.Socket();
 			ss.connect(s1);
 
-			ss.write(new Buffer("GET / HTTP/1.0"));
+			ss.write("GET / HTTP/1.0");
 			assert.equal("GET / HTTP/1.0", ss.read());
 
 			ss.close();
@@ -179,14 +180,14 @@ describe('ssl', function() {
 		}));
 		svr.asyncRun();
 
-		for (i = 0; i < 10; i++) {
+		for (var i = 0; i < 10; i++) {
 			var s1 = new net.Socket();
 			s1.connect("127.0.0.1", 9083);
 
 			var ss = new ssl.Socket();
 			ss.connect(s1);
 
-			ss.write(new Buffer("GET / HTTP/1.0"));
+			ss.write("GET / HTTP/1.0");
 			assert.equal("GET / HTTP/1.0", ss.read());
 
 			ss.close();
@@ -203,14 +204,14 @@ describe('ssl', function() {
 		});
 		svr.asyncRun();
 
-		for (i = 0; i < 10; i++) {
+		for (var i = 0; i < 10; i++) {
 			var s1 = new net.Socket();
 			s1.connect("127.0.0.1", 9084);
 
 			var ss = new ssl.Socket();
 			ss.connect(s1);
 
-			ss.write(new Buffer("GET / HTTP/1.0"));
+			ss.write("GET / HTTP/1.0");
 			assert.equal("GET / HTTP/1.0", ss.read());
 
 			ss.close();

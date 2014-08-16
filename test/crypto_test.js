@@ -272,7 +272,7 @@ describe('crypto', function() {
 
 				var pk1 = pk.publicKey;
 
-				var d = pk1.encrypt(new Buffer("abcdefg"));
+				var d = pk1.encrypt("abcdefg");
 				assert.equal(pk.decrypt(d).toString(), "abcdefg");
 
 				assert.throws(function() {
@@ -286,8 +286,8 @@ describe('crypto', function() {
 
 				var pk1 = pk.publicKey;
 
-				var md = hash.md5(new Buffer("abcdefg")).digest();
-				var md1 = hash.md5(new Buffer("abcdefg1")).digest();
+				var md = hash.md5("abcdefg").digest();
+				var md1 = hash.md5("abcdefg1").digest();
 				var d = pk.sign(md);
 				assert.isTrue(pk1.verify(d, md));
 				assert.isFalse(pk1.verify(d, md1));
@@ -368,8 +368,8 @@ describe('crypto', function() {
 
 				var pk1 = pk.publicKey;
 
-				var md = hash.md5(new Buffer("abcdefg")).digest();
-				var md1 = hash.md5(new Buffer("abcdefg1")).digest();
+				var md = hash.md5("abcdefg").digest();
+				var md1 = hash.md5("abcdefg1").digest();
 				var d = pk.sign(md);
 				assert.isTrue(pk1.verify(d, md));
 				assert.isFalse(pk1.verify(d, md1));
@@ -606,7 +606,7 @@ describe('crypto', function() {
 		});
 
 		it("sign", function() {
-			cert = req.sign("C=CN, O=baoz.cn", pk);
+			var cert = req.sign("C=CN, O=baoz.cn", pk);
 			assert.equal(cert.issuer, "C=CN, O=baoz.cn");
 			assert.equal(cert.subject, "C=CN, O=baoz.cn, CN=baoz.me");
 			assert.equal(cert.publicKey, pub_rsa1024_pem);
@@ -614,7 +614,7 @@ describe('crypto', function() {
 		});
 
 		it("ca/pathlen", function() {
-			cert = req.sign("C=CN, O=baoz.cn", pk);
+			var cert = req.sign("C=CN, O=baoz.cn", pk);
 			assert.isFalse(cert.ca);
 			assert.equal(cert.pathlen, 0);
 
@@ -627,7 +627,7 @@ describe('crypto', function() {
 		});
 
 		it("before/after", function() {
-			cert = req.sign("C=CN, O=baoz.cn", pk);
+			var cert = req.sign("C=CN, O=baoz.cn", pk);
 			assert.deepEqual(os.dateAdd(cert.notBefore, 1, "year"), cert.notAfter);
 
 			cert = req.sign("C=CN, O=baoz.cn", pk, {
@@ -645,7 +645,7 @@ describe('crypto', function() {
 		});
 
 		it("usage/type", function() {
-			cert = req.sign("C=CN, O=baoz.cn", pk);
+			var cert = req.sign("C=CN, O=baoz.cn", pk);
 			assert.equal(cert.usage, "");
 			assert.equal(cert.type, "");
 

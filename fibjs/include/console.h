@@ -10,11 +10,15 @@
 
 #include "utils.h"
 #include "TextColor.h"
+#include "ifs/console.h"
+#include "ifs/coroutine.h"
+#include "ifs/fs.h"
 
 namespace fibjs
 {
 
-class logger : public obj_base
+class logger : public obj_base,
+    public exlib::OSThread
 {
 public:
     class item : public asyncEvent
@@ -23,12 +27,175 @@ public:
         item(int32_t priority, std::string msg) :
             m_priority(priority), m_msg(msg)
         {
+            m_d.now();
+
+            if (exlib::Service::hasService())
+            {
+                v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
+                        isolate, 1, v8::StackTrace::kOverview);
+
+                if (stackTrace->GetFrameCount() > 0)
+                {
+                    char numStr[64];
+                    v8::Local<v8::StackFrame> f = stackTrace->GetFrame(0);
+                    v8::String::Utf8Value filename(f->GetScriptName());
+
+                    if (*filename)
+                        m_source.append(*filename);
+                    else
+                        m_source.append("[eval]");
+
+                    sprintf(numStr, ":%d", f->GetLineNumber());
+                    m_source.append(numStr);
+                }
+            }
+        }
+
+        std::string full()
+        {
+            static const char *s_levels[] =
+            {
+                " FATAL  - ",
+                " ALERT  - ",
+                " CRIT   - ",
+                " ERROR  - ",
+                " WARN   - ",
+                " NOTICE - ",
+                " INFO   - ",
+                " DEBUG  - ",
+                " ",
+                " ",
+                " "
+            };
+            std::string s;
+
+            m_d.sqlString(s);
+
+            s.append(" ", 1);
+            s.append(m_source);
+
+            s.append(s_levels[m_priority]);
+            s.append(m_msg);
+
+            return s;
         }
 
     public:
         int32_t m_priority;
         std::string m_msg;
+        std::string m_source;
+        date_t m_d;
     };
+
+public:
+    logger() : m_logEmpty(true), m_bStop(false)
+    {
+        int32_t i;
+
+        for (i = 0; i < console_base::_NOTSET; i ++)
+            m_levels[i] = true;
+
+        Ref();
+        start();
+    }
+
+    virtual result_t config(v8::Local<v8::Object> o)
+    {
+        int32_t i;
+        result_t hr;
+        v8::Local<v8::Array> levels;
+
+        hr = GetConfigValue(o, "levels", levels);
+        if (hr == CALL_E_PARAMNOTOPTIONAL)
+        {
+        }
+        else if (hr < 0)
+            return hr;
+        else
+        {
+            for (i = 0; i < console_base::_NOTSET; i ++)
+                m_levels[i] = false;
+
+            int32_t sz = levels->Length();
+
+            for (i = 0; i < sz; i ++)
+            {
+                v8::Local<v8::Value> l = levels->Get(i);
+                int32_t num;
+
+                hr = GetArgumentValue(l, num);
+                if (hr < 0)
+                    return hr;
+
+                if (num >= 0 && num < console_base::_NOTSET)
+                    m_levels[num] = true;
+                else
+                    return CHECK_ERROR(Runtime::setError("console: too many logger."));
+            }
+        }
+
+        return 0;
+    }
+
+    virtual void Run()
+    {
+        Runtime rt;
+        DateCache dc;
+        rt.m_pDateCache = &dc;
+
+        Runtime::reg(&rt);
+
+        logger::item *p1, *p2, *pn;
+
+        while (!m_bStop)
+        {
+            m_sem.Wait();
+
+            m_logEmpty = false;
+
+            p1 = (logger::item *)m_acLog.getList();
+            pn = NULL;
+
+            while (p1)
+            {
+                p2 = p1;
+                p1 = (logger::item *) p1->m_next;
+                p2->m_next = pn;
+                pn = p2;
+            }
+
+            if (pn)
+                write(pn);
+
+            m_logEmpty = true;
+        }
+
+        Unref();
+    }
+
+public:
+    virtual void write(item *pn) = 0;
+
+    void log(int priority, std::string msg)
+    {
+        if (priority >= 0 && priority < console_base::_NOTSET && m_levels[priority])
+        {
+            m_acLog.put(new item(priority, msg));
+            m_sem.Post();
+        }
+    }
+
+    void flush()
+    {
+        while (!m_acLog.empty() || !m_logEmpty)
+            coroutine_base::ac_sleep(1);
+    }
+
+    void stop()
+    {
+        m_bStop = true;
+        m_sem.Post();
+    }
 
 public:
     static std::string &notice()
@@ -53,10 +220,47 @@ public:
 
     static TextColor *get_std_color();
 
-    static void std_out(const char *txt);
+private:
+    exlib::AsyncQueue m_acLog;
+    exlib::OSSemaphore m_sem;
+    bool m_logEmpty;
+    bool m_bStop;
+    bool m_levels[console_base::_NOTSET];
+};
 
+class std_logger : public logger
+{
 public:
-    virtual result_t write(const item *data, exlib::AsyncEvent *ac) = 0;
+    virtual void write(item *pn);
+    static void out(const char *txt);
+};
+
+class sys_logger : public logger
+{
+public:
+    virtual void write(item *pn);
+};
+
+class file_logger : public logger
+{
+public:
+    virtual result_t config(v8::Local<v8::Object> o);
+    virtual void write(item *pn);
+
+private:
+    void clearFile();
+    result_t initFile();
+
+private:
+    std::string m_path;
+    std::string m_folder;
+    int32_t m_split_mode;
+    int64_t m_split_size;
+    int32_t m_count;
+
+    obj_ptr<Stream_base> m_file;
+    int64_t m_size;
+    date_t m_date;
 };
 
 }

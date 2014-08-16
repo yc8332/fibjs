@@ -54,6 +54,7 @@ var hierarchy =
       [ "HttpsServer", "d5/d3b/classHttpsServer.html", null ],
       [ "HttpUploadData", "d0/d3c/classHttpUploadData.html", null ],
       [ "Image", "d8/d00/classImage.html", null ],
+      [ "LevelDB", "d8/d3e/classLevelDB.html", null ],
       [ "List", "d6/da9/classList.html", [
         [ "DBResult", "d0/de2/classDBResult.html", null ]
       ] ],
@@ -79,6 +80,11 @@ var hierarchy =
       [ "Queue", "d7/d56/classQueue.html", [
         [ "BlockQueue", "d7/d38/classBlockQueue.html", null ]
       ] ],
+      [ "Redis", "db/d15/classRedis.html", null ],
+      [ "RedisHash", "df/dbc/classRedisHash.html", null ],
+      [ "RedisList", "d8/dc8/classRedisList.html", null ],
+      [ "RedisSet", "df/d65/classRedisSet.html", null ],
+      [ "RedisSortedSet", "d8/dc0/classRedisSortedSet.html", null ],
       [ "Regex", "d8/d28/classRegex.html", null ],
       [ "SandBox", "d1/d3c/classSandBox.html", null ],
       [ "Smtp", "d5/d6b/classSmtp.html", null ],

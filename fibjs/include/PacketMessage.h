@@ -17,7 +17,8 @@ namespace fibjs
 class PacketMessage: public PacketMessage_base
 {
 public:
-    PacketMessage(int32_t maxSize) : m_maxSize(maxSize)
+    PacketMessage(int32_t maxSize, bool bRep = false)
+        : m_maxSize(maxSize), m_bRep(bRep)
     {
     }
 
@@ -31,11 +32,13 @@ public:
     virtual result_t set_result(Variant newVal);
     virtual result_t get_body(obj_ptr<SeekableStream_base> &retVal);
     virtual result_t set_body(SeekableStream_base *newVal);
+    virtual result_t write(Buffer_base *data, exlib::AsyncEvent *ac);
     virtual result_t get_length(int64_t &retVal);
     virtual result_t clear();
     virtual result_t sendTo(Stream_base *stm, exlib::AsyncEvent *ac);
     virtual result_t readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac);
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
+    virtual result_t get_response(obj_ptr<Message_base> &retVal);
 
 public:
     // PacketMessage_base
@@ -68,6 +71,8 @@ public:
 
 private:
     Message::_msg m_message;
+    obj_ptr<PacketMessage_base> m_response;
+    bool m_bRep;
 };
 
 } /* namespace fibjs */

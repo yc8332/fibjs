@@ -1,6 +1,7 @@
 /***************************************************************************
- *   Copyright (C) 2012 by Leo Hoo                                         *
- *   lion@9465.net                                                         *
+ *                                                                         *
+ *   This file was automatically generated using idlc.js                   *
+ *   PLEASE DO NOT EDIT!!!!                                                *
  *                                                                         *
  ***************************************************************************/
 
@@ -23,7 +24,7 @@ class X509Cert_base : public object_base
 {
 public:
 	// X509Cert_base
-	static result_t _new(obj_ptr<X509Cert_base>& retVal);
+	static result_t _new(obj_ptr<X509Cert_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t load(Buffer_base* derCert) = 0;
 	virtual result_t load(const char* txtCert) = 0;
 	virtual result_t loadFile(const char* filename) = 0;
@@ -264,7 +265,7 @@ namespace fibjs
 
 		CONSTRUCT_ENTER(0, 0);
 
-		hr = _new(vr);
+		hr = _new(vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

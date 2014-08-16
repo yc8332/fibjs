@@ -645,6 +645,24 @@ void date_t::sqlString(std::string &retVal)
     putInt(ptrBuf, ds.wSecond, 2);
 }
 
+void date_t::stamp(std::string &retVal)
+{
+    if (isnan(d))
+        return;
+
+    _date_split ds((double)Runtime::now().m_pDateCache->ToLocal((int64_t) d));
+
+    retVal.resize(14);
+    char *ptrBuf = &retVal[0];
+
+    putInt(ptrBuf, ds.wYear, 4);
+    putInt(ptrBuf, ds.wMonth + 1, 2);
+    putInt(ptrBuf, ds.wDay + 1, 2);
+    putInt(ptrBuf, ds.wHour, 2);
+    putInt(ptrBuf, ds.wMinute, 2);
+    putInt(ptrBuf, ds.wSecond, 2);
+}
+
 void date_t::add(int num, int part)
 {
     if (isnan(d))
@@ -690,6 +708,30 @@ void date_t::add(int num, int part)
 
         create(ds.wYear, ds.wMonth + 1, ds.wDay + 1, ds.wHour,
                ds.wMinute, ds.wSecond, ds.wMillisecond);
+    }
+}
+
+void date_t::fix(int part)
+{
+    if (isnan(d))
+        return;
+
+    if (part == _SECOND)
+        d = (double)((int64_t)d / 1000) * 1000;
+    else if (part == _MINUTE)
+        d = (double)((int64_t)d / (60 * 1000)) * 60 * 1000;
+    else if (part == _HOUR)
+        d = (double)((int64_t)d / (60 * 60 * 1000)) * 60 * 60 * 1000;
+    else if (part == _DAY)
+        d = (double)((int64_t)d / (60 * 60 * 24 * 1000)) * 60 * 60 * 24 * 1000;
+    else
+    {
+        _date_split ds(d);
+
+        if (part == _MONTH)
+            create(ds.wYear, ds.wMonth + 1, 1, 0, 0, 0, 0);
+        else if (part == _YEAR)
+            create(ds.wYear, 1, 1, 0, 0, 0, 0);
     }
 }
 

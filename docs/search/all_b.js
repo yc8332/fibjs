@@ -1,10 +1,13 @@
 var searchData=
 [
+  ['last',['last',['../d8/d61/classutil.html#adabb887de98cc0bd54035af02452225b',1,'util::last(Value v)'],['../d8/d61/classutil.html#a764290a833d1fbfdb3616374f54be720',1,'util::last(Value v, Integer n)']]],
   ['lastindex',['lastIndex',['../d8/d28/classRegex.html#a7a36b53fcaef538a5c81c8569c508fdf',1,'Regex']]],
   ['least',['least',['../dd/d7a/classExpect.html#a80a82dccaf29e7dcb10f1f2347b1c550',1,'Expect']]],
   ['left',['LEFT',['../d5/d5d/classgd.html#a4e70973abe19fc25232aa82e4b0c38c8',1,'gd']]],
+  ['len',['len',['../df/dbc/classRedisHash.html#a26ef98c343228656940c7a64909b5dd1',1,'RedisHash::len()'],['../d8/dc8/classRedisList.html#aa976e16b1b36eb515c2c3779445bdf6e',1,'RedisList::len()'],['../df/d65/classRedisSet.html#ad906a3ba2dfe4520f8044450eba90c9b',1,'RedisSet::len()'],['../d8/dc0/classRedisSortedSet.html#a46d1cfc5c8bb2d88ecaa6f0d2f5fc52f',1,'RedisSortedSet::len()']]],
   ['length',['length',['../d0/d11/classBuffer.html#a31eae850157fbe1e15cf7e333c795793',1,'Buffer::length()'],['../d6/da9/classList.html#ac14dd2e85d341d532c0a7c3f107922f0',1,'List::length()'],['../d6/d28/classMessage.html#a26e77ec52998a43c1b97fd4b7229283c',1,'Message::length()'],['../d7/d56/classQueue.html#a5d54db5509dc75de10b7c15f3bb1996b',1,'Queue::length()']]],
   ['lessthan',['lessThan',['../de/d1c/classassert.html#a4b1b450014e4539994cd105a8f9d0eb9',1,'assert::lessThan()'],['../dd/d7a/classExpect.html#ae73ba4fcdf0a8c2610bc2c1bbab6f358',1,'Expect::lessThan()']]],
+  ['leveldb',['LevelDB',['../d8/d3e/classLevelDB.html',1,'']]],
   ['limit',['limit',['../db/d7d/classMongoCursor.html#a7e591ebbad75e2e4019e8ad922e1d402',1,'MongoCursor']]],
   ['line',['line',['../d8/d00/classImage.html#ab4ca0dbea7a43ea1ee0995eeb68a529f',1,'Image']]],
   ['list',['List',['../d6/da9/classList.html',1,'List'],['../d3/d2d/classcollection.html#a502c2c5e43d5019ab20ad39e3df90082',1,'collection::List()'],['../d6/da9/classList.html#a64d878a92d11f7c63c70cbe4e7dd4176',1,'List::List()']]],

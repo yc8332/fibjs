@@ -20,41 +20,19 @@ result_t global_base::get_console(obj_ptr<console_base> &retVal)
 
 result_t global_base::GC()
 {
-    v8::V8::LowMemoryNotification();
+    isolate->LowMemoryNotification();
     return 0;
 }
 
+extern obj_ptr<SandBox> s_topSandbox;
 result_t global_base::run(const char *fname)
 {
-    obj_ptr<SandBox_base> sbox;
-    result_t hr = vm_base::current(sbox);
-    if (hr < 0)
-        return hr;
-
-    return sbox->run(fname);
-}
-
-result_t global_base::repl()
-{
-    v8::Local<v8::Context> ctx = isolate->GetCallingContext();
-
-    if (!ctx.IsEmpty())
-    {
-        v8::Context::Scope context_scope(ctx);
-        SandBox::Context::repl();
-    }
-
-    return 0;
+    return s_topSandbox->run(fname);
 }
 
 result_t global_base::require(const char *id, v8::Local<v8::Value> &retVal)
 {
-    obj_ptr<SandBox_base> sbox;
-    result_t hr = vm_base::current(sbox);
-    if (hr < 0)
-        return hr;
-
-    return sbox->require(id, retVal);
+    return s_topSandbox->require(id, retVal);
 }
 
 }

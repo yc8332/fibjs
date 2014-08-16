@@ -13,6 +13,8 @@
 namespace v8 {
 namespace internal {
 
+class ScriptData;
+
 
 // Abstract interface for preparse data recorder.
 class ParserRecorder {
@@ -53,7 +55,7 @@ class SingletonLogger : public ParserRecorder {
                            int literals,
                            int properties,
                            StrictMode strict_mode) {
-    ASSERT(!has_error_);
+    DCHECK(!has_error_);
     start_ = start;
     end_ = end;
     literals_ = literals;
@@ -83,24 +85,24 @@ class SingletonLogger : public ParserRecorder {
   int start() const { return start_; }
   int end() const { return end_; }
   int literals() const {
-    ASSERT(!has_error_);
+    DCHECK(!has_error_);
     return literals_;
   }
   int properties() const {
-    ASSERT(!has_error_);
+    DCHECK(!has_error_);
     return properties_;
   }
   StrictMode strict_mode() const {
-    ASSERT(!has_error_);
+    DCHECK(!has_error_);
     return strict_mode_;
   }
   int is_reference_error() const { return is_reference_error_; }
   const char* message() {
-    ASSERT(has_error_);
+    DCHECK(has_error_);
     return message_;
   }
   const char* argument_opt() const {
-    ASSERT(has_error_);
+    DCHECK(has_error_);
     return argument_opt_;
   }
 
@@ -149,13 +151,17 @@ class CompleteParserRecorder : public ParserRecorder {
                           const char* message,
                           const char* argument_opt,
                           bool is_reference_error_);
-  Vector<unsigned> ExtractData();
+  ScriptData* GetScriptData();
 
- private:
-  bool has_error() {
+  bool HasError() {
     return static_cast<bool>(preamble_[PreparseDataConstants::kHasErrorOffset]);
   }
+  Vector<unsigned> ErrorMessageData() {
+    DCHECK(HasError());
+    return function_store_.ToVector();
+  }
 
+ private:
   void WriteString(Vector<const char> str);
 
   // Write a non-negative number to the symbol store.

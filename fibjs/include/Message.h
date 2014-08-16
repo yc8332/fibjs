@@ -27,11 +27,13 @@ public:
     virtual result_t set_result(Variant newVal);
     virtual result_t get_body(obj_ptr<SeekableStream_base> &retVal);
     virtual result_t set_body(SeekableStream_base *newVal);
+    virtual result_t write(Buffer_base *data, exlib::AsyncEvent *ac);
     virtual result_t get_length(int64_t &retVal);
     virtual result_t clear();
     virtual result_t sendTo(Stream_base *stm, exlib::AsyncEvent *ac);
     virtual result_t readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac);
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
+    virtual result_t get_response(obj_ptr<Message_base> &retVal);
 
 public:
     class _msg
@@ -58,6 +60,7 @@ public:
         result_t set_result(Variant newVal);
         result_t get_body(obj_ptr<SeekableStream_base> &retVal);
         result_t set_body(SeekableStream_base *newVal);
+        result_t write(Buffer_base *data, exlib::AsyncEvent *ac);
         result_t get_length(int64_t &retVal);
 
     public:
@@ -85,8 +88,15 @@ public:
         obj_ptr<SeekableStream_base> m_body;
     };
 
+public:
+    Message(bool bRep = false) : m_bRep(bRep)
+    {
+    }
+
 private:
     _msg m_message;
+    obj_ptr<Message_base> m_response;
+    bool m_bRep;
 };
 
 } /* namespace fibjs */

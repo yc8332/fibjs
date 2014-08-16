@@ -53,6 +53,7 @@ int mongo_env_socket_connect(mongo *conn, const char *host, int port)
         return MONGO_ERROR;
     }
 
+    conn->connected = 1;
     return MONGO_OK;
 }
 
@@ -64,6 +65,7 @@ int mongo_env_sock_init(void)
 int mongo_env_close_socket(void *socket)
 {
     fibjs::socket::close(socket);
+    fibjs::socket::destroy(socket);
     return 0;
 }
 
@@ -152,7 +154,7 @@ result_t db_base::openMongoDB(const char *connString,
                               obj_ptr<MongoDB_base> &retVal, exlib::AsyncEvent *ac)
 {
     if (qstrcmp(connString, "mongodb:", 8))
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     obj_ptr<MongoDB> db = new MongoDB();
     result_t hr = db->open(connString);
@@ -212,7 +214,7 @@ result_t MongoDB::open(const char *connString)
     }
 
     if (result != MONGO_OK)
-        return error();
+        return CHECK_ERROR(error());
 
     if (!u->m_pathname.empty())
         m_ns = u->m_pathname.substr(1);
@@ -220,7 +222,7 @@ result_t MongoDB::open(const char *connString)
     if (!u->m_username.empty())
         if (mongo_cmd_authenticate(&m_conn, m_ns.c_str(), u->m_username.c_str(),
                                    u->m_password.c_str()) != MONGO_OK)
-            return error();
+            return CHECK_ERROR(error());
 
     return 0;
 }
@@ -251,7 +253,7 @@ result_t MongoDB::run_command(bson *command, v8::Local<v8::Object> &retVal)
     if (mongo_run_command(&m_conn, m_ns.c_str(), command, &out) != MONGO_OK)
     {
         bson_destroy(command);
-        return error();
+        return CHECK_ERROR(error());
     }
 
     retVal = decodeObject(&out);

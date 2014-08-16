@@ -11,6 +11,7 @@ var searchData=
   ['sha256',['SHA256',['../d5/df6/classhash.html#a479d5d79b494b5324cc536b483b4619f',1,'hash']]],
   ['sha384',['SHA384',['../d5/df6/classhash.html#ab3642bba484b7f0633956bae80dc6bd9',1,'hash']]],
   ['sha512',['SHA512',['../d5/df6/classhash.html#a8ba2e8e53c773269d0e949bfd5e07fb8',1,'hash']]],
+  ['singleusermode',['singleUserMode',['../d2/dd1/classcoroutine.html#af105dc75a226575e7b8e6c2e2312c1b2',1,'coroutine']]],
   ['size',['size',['../dd/d8f/classDigest.html#a4ffefefd60695d1448d2a79421b2b85d',1,'Digest::size()'],['../de/d0f/classLruCache.html#aee1e7aea2978a02636cb4314bdb11420',1,'LruCache::size()'],['../d7/db0/classMap.html#a36abb4b144a680fb4a2152bac4ff80fa',1,'Map::size()'],['../dc/d81/classStat.html#a2e40d56627672e702cfd14aae5bc40e5',1,'Stat::size()']]],
   ['slashes',['slashes',['../df/d6b/classUrl.html#a77d7f7816531a40a03534c4b41a9a87c',1,'Url']]],
   ['slow',['slow',['../de/d01/classtest.html#a09913ac8583af372187ee252951103c4',1,'test']]],

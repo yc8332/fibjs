@@ -82,7 +82,7 @@ describe("db", function() {
 				conn.execute("delete from test;");
 				conn.execute("insert into test values(1,'aa', ?, ?);",
 					b, new Date());
-				rs = conn.execute("select * from test;");
+				var rs = conn.execute("select * from test;");
 				assert.equal(rs[0].t3.length, 1);
 				assert.equal(rs[0].t3[0], i);
 			}
@@ -99,6 +99,235 @@ describe("db", function() {
 	xdescribe("mysql", function() {
 		_test('mysql://root@localhost/test');
 	});
+
+
+	describe("leveldb", function() {
+		after(clear_db);
+
+		function clear_db() {
+			try {
+				fs.readdir("testdb").forEach(function(s) {
+					if (s.name != "." && s.name != "..")
+						fs.unlink("testdb/" + s.name);
+				});
+
+				fs.rmdir("testdb");
+			} catch (e) {};
+		}
+
+		it('open/close', function() {
+			var ldb = db.openLevelDB("testdb");
+			ldb.close();
+			clear_db();
+		});
+
+		it('put/get', function() {
+			var b = "bbbbb";
+			var ldb = db.openLevelDB("testdb");
+			ldb.put("test", b);
+			assert.equal(ldb.get("test").toString(), "bbbbb");
+			ldb.close();
+			clear_db();
+		});
+
+		it('binary Key', function() {
+			var b = "bbbbb1";
+			var ldb = db.openLevelDB("testdb");
+			ldb.put("test1", b);
+			assert.equal(ldb.get("test1").toString(), "bbbbb1");
+			ldb.close();
+			clear_db();
+		});
+
+		it('batch put', function() {
+			var data = {
+				"aaa": "aaa value",
+				"bbb": "bbb value",
+				"ccc": "ccc value",
+				"ddd": "ddd value"
+			};
+
+			var ldb = db.openLevelDB("testdb");
+			ldb.put(data);
+			assert.equal(ldb.get("aaa").toString(), "aaa value");
+			assert.equal(ldb.get("bbb").toString(), "bbb value");
+			assert.equal(ldb.get("ccc").toString(), "ccc value");
+			assert.equal(ldb.get("ddd").toString(), "ddd value");
+			ldb.close();
+			clear_db();
+		});
+
+		it('remove/has', function() {
+			var b = "bbbbb";
+			var ldb = db.openLevelDB("testdb");
+			assert.isNull(ldb.get("not_exists"));
+			assert.isFalse(ldb.has("not_exists"));
+			ldb.put("not_exists", b);
+			assert.isTrue(ldb.has("not_exists"));
+			ldb.remove("not_exists");
+			assert.isFalse(ldb.has("not_exists"));
+
+			ldb.put("not_exists", b);
+			assert.isTrue(ldb.has("not_exists"));
+			ldb.remove("not_exists");
+			assert.isFalse(ldb.has("not_exists"));
+			ldb.close();
+			clear_db();
+		});
+
+		it('batch remove', function() {
+			var data = {
+				"aaa": "aaa value",
+				"bbb": "bbb value",
+				"ccc": "ccc value",
+				"ddd": "ddd value"
+			};
+
+			var ldb = db.openLevelDB("testdb");
+			ldb.put(data);
+
+			ldb.remove(["bbb", "ddd"]);
+
+			assert.equal(ldb.get("aaa").toString(), "aaa value");
+			assert.isNull(ldb.get("bbb"));
+			assert.equal(ldb.get("ccc").toString(), "ccc value");
+			assert.isNull(ldb.get("ddd"));
+
+			ldb.close();
+			clear_db();
+		});
+
+		it('begin/commit', function() {
+			var b = "bbbbb";
+			var c = "ccccc";
+			var ldb = db.openLevelDB("testdb");
+
+			ldb.put("test", b);
+			assert.equal(ldb.get("test").toString(), "bbbbb");
+
+			var tr = ldb.begin();
+
+			tr.put("test", c);
+			assert.equal(ldb.get("test").toString(), "bbbbb");
+
+			tr.commit();
+
+			assert.equal(ldb.get("test").toString(), "ccccc");
+
+			ldb.close();
+			clear_db();
+		});
+
+		it('begin/close', function() {
+			var b = "bbbbb";
+			var c = "ccccc";
+			var ldb = db.openLevelDB("testdb");
+
+			ldb.put("test", b);
+			assert.equal(ldb.get("test").toString(), "bbbbb");
+
+			var tr = ldb.begin();
+
+			tr.put("test", c);
+			assert.equal(ldb.get("test").toString(), "bbbbb");
+
+			tr.close();
+
+			assert.equal(ldb.get("test").toString(), "bbbbb");
+
+			ldb.close();
+			clear_db();
+		});
+
+		it('forEach', function() {
+			var data = {
+				"ccc": "ccc value",
+				"aaa": "aaa value",
+				"bbb": "bbb value",
+				"ddd": "ddd value"
+			};
+
+			var ldb = db.openLevelDB("testdb");
+
+			var count = 0;
+			ldb.forEach(function(k, v) {
+				count++;
+			});
+			assert.equal(count, 0);
+
+			ldb.put(data);
+
+			count = 0;
+			ldb.forEach(function(k, v) {
+				assert.equal(data[k].toString(), v.toString());
+				delete data[k];
+				count++;
+			});
+			assert.equal(count, 4);
+
+			ldb.close();
+			clear_db();
+		});
+
+		it('between', function() {
+			var data = {
+				"ccc": "ccc value",
+				"aaa": "aaa value",
+				"bbb": "bbb value",
+				"ddd": "ddd value"
+			};
+
+			var data1 = {
+				"ccc": "ccc value",
+				"bbb": "bbb value"
+			};
+
+			var ldb = db.openLevelDB("testdb");
+			ldb.put(data);
+
+			var count = 0;
+			ldb.between("bbb", "ddd", function(k, v) {
+				assert.equal(data1[k].toString(), v.toString());
+				delete data1[k];
+				count++;
+			});
+			assert.equal(count, 2);
+
+			ldb.close();
+			clear_db();
+		});
+
+		it('break', function() {
+			var data = {
+				"ccc": "ccc value",
+				"aaa": "aaa value",
+				"bbb": "bbb value",
+				"ddd": "ddd value"
+			};
+
+			var data1 = {
+				"aaa": "aaa value",
+				"bbb": "bbb value"
+			};
+
+			var ldb = db.openLevelDB("testdb");
+			ldb.put(data);
+
+			var count = 0;
+			ldb.forEach(function(k, v) {
+				assert.equal(data1[k].toString(), v.toString());
+				delete data1[k];
+				count++;
+				if (count == 2)
+					return true;
+			});
+			assert.equal(count, 2);
+
+			ldb.close();
+			clear_db();
+		});
+
+	});
 });
 
-// test.run(console.DEBUG);
+//test.run(console.DEBUG);

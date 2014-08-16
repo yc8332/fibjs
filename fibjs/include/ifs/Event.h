@@ -1,6 +1,7 @@
 /***************************************************************************
- *   Copyright (C) 2012 by Leo Hoo                                         *
- *   lion@9465.net                                                         *
+ *                                                                         *
+ *   This file was automatically generated using idlc.js                   *
+ *   PLEASE DO NOT EDIT!!!!                                                *
  *                                                                         *
  ***************************************************************************/
 
@@ -23,7 +24,7 @@ class Event_base : public Lock_base
 {
 public:
 	// Event_base
-	static result_t _new(bool value, obj_ptr<Event_base>& retVal);
+	static result_t _new(bool value, obj_ptr<Event_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t isSet(bool& retVal) = 0;
 	virtual result_t set() = 0;
 	virtual result_t pulse() = 0;
@@ -77,7 +78,7 @@ namespace fibjs
 
 		OPT_ARG(bool, 0, false);
 
-		hr = _new(v0, vr);
+		hr = _new(v0, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

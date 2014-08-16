@@ -13,9 +13,11 @@ namespace fibjs
 {
 
 result_t SslHandler_base::_new(v8::Local<v8::Array> certs, v8::Local<v8::Value> hdlr,
-                               obj_ptr<SslHandler_base> &retVal)
+                               obj_ptr<SslHandler_base> &retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<SslHandler> sslHdlr = new SslHandler();
+
+    sslHdlr->wrap(This);
 
     result_t hr = sslHdlr->init(certs, hdlr);
     if (hr < 0)
@@ -26,9 +28,12 @@ result_t SslHandler_base::_new(v8::Local<v8::Array> certs, v8::Local<v8::Value> 
 }
 
 result_t SslHandler_base::_new(X509Cert_base *crt, PKey_base *key,
-                               v8::Local<v8::Value> hdlr, obj_ptr<SslHandler_base> &retVal)
+                               v8::Local<v8::Value> hdlr, obj_ptr<SslHandler_base> &retVal,
+                               v8::Local<v8::Object> This)
 {
     obj_ptr<SslHandler> sslHdlr = new SslHandler();
+
+    sslHdlr->wrap(This);
 
     result_t hr = sslHdlr->init(crt, key, hdlr);
     if (hr < 0)
@@ -42,9 +47,12 @@ result_t SslHandler::init(v8::Local<v8::Array> certs, v8::Local<v8::Value> hdlr)
 {
     result_t hr;
 
-    hr = JSHandler::New(hdlr, m_hdlr);
+    obj_ptr<Handler_base> hdlr1;
+    hr = JSHandler::New(hdlr, hdlr1);
     if (hr < 0)
         return hr;
+
+    set_handler(hdlr1);
 
     hr = SslSocket_base::_new(certs, m_socket);
     if (hr < 0)
@@ -57,9 +65,12 @@ result_t SslHandler::init(X509Cert_base *crt, PKey_base *key, v8::Local<v8::Valu
 {
     result_t hr;
 
-    hr = JSHandler::New(hdlr, m_hdlr);
+    obj_ptr<Handler_base> hdlr1;
+    hr = JSHandler::New(hdlr, hdlr1);
     if (hr < 0)
         return hr;
+
+    set_handler(hdlr1);
 
     hr = SslSocket_base::_new(crt, key, m_socket);
     if (hr < 0)
@@ -118,11 +129,11 @@ result_t SslHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     };
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Stream_base> stm = Stream_base::getInstance(v);
     if (stm == NULL)
-        return CALL_E_BADVARTYPE;
+        return CHECK_ERROR(CALL_E_BADVARTYPE);
 
     return (new asyncInvoke(this, stm, ac))->post(0);
 }
@@ -150,6 +161,7 @@ result_t SslHandler::get_handler(obj_ptr<Handler_base> &retVal)
 
 result_t SslHandler::set_handler(Handler_base *newVal)
 {
+    wrap()->SetHiddenValue(v8::String::NewFromUtf8(isolate, "handler"), newVal->wrap());
     m_hdlr = newVal;
     return 0;
 }

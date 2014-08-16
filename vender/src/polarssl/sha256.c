@@ -28,7 +28,11 @@
  *  http://csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_SHA256_C)
 
@@ -43,6 +47,11 @@
 #else
 #define polarssl_printf printf
 #endif
+
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
 
 #if !defined(POLARSSL_SHA256_ALT)
 
@@ -68,6 +77,19 @@
     (b)[(i) + 3] = (unsigned char) ( (n)       );       \
 }
 #endif
+
+void sha256_init( sha256_context *ctx )
+{
+    memset( ctx, 0, sizeof( sha256_context ) );
+}
+
+void sha256_free( sha256_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    polarssl_zeroize( ctx, sizeof( sha256_context ) );
+}
 
 /*
  * SHA-256 context setup
@@ -239,12 +261,13 @@ void sha256_process( sha256_context *ctx, const unsigned char data[64] )
 /*
  * SHA-256 process buffer
  */
-void sha256_update( sha256_context *ctx, const unsigned char *input, size_t ilen )
+void sha256_update( sha256_context *ctx, const unsigned char *input,
+                    size_t ilen )
 {
     size_t fill;
     uint32_t left;
 
-    if( ilen <= 0 )
+    if( ilen == 0 )
         return;
 
     left = ctx->total[0] & 0x3F;
@@ -328,11 +351,11 @@ void sha256( const unsigned char *input, size_t ilen,
 {
     sha256_context ctx;
 
+    sha256_init( &ctx );
     sha256_starts( &ctx, is224 );
     sha256_update( &ctx, input, ilen );
     sha256_finish( &ctx, output );
-
-    memset( &ctx, 0, sizeof( sha256_context ) );
+    sha256_free( &ctx );
 }
 
 #if defined(POLARSSL_FS_IO)
@@ -349,14 +372,14 @@ int sha256_file( const char *path, unsigned char output[32], int is224 )
     if( ( f = fopen( path, "rb" ) ) == NULL )
         return( POLARSSL_ERR_SHA256_FILE_IO_ERROR );
 
+    sha256_init( &ctx );
     sha256_starts( &ctx, is224 );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
         sha256_update( &ctx, buf, n );
 
     sha256_finish( &ctx, output );
-
-    memset( &ctx, 0, sizeof( sha256_context ) );
+    sha256_free( &ctx );
 
     if( ferror( f ) != 0 )
     {
@@ -397,13 +420,14 @@ void sha256_hmac_starts( sha256_context *ctx, const unsigned char *key,
     sha256_starts( ctx, is224 );
     sha256_update( ctx, ctx->ipad, 64 );
 
-    memset( sum, 0, sizeof( sum ) );
+    polarssl_zeroize( sum, sizeof( sum ) );
 }
 
 /*
  * SHA-256 HMAC process buffer
  */
-void sha256_hmac_update( sha256_context *ctx, const unsigned char *input, size_t ilen )
+void sha256_hmac_update( sha256_context *ctx, const unsigned char *input,
+                         size_t ilen )
 {
     sha256_update( ctx, input, ilen );
 }
@@ -425,7 +449,7 @@ void sha256_hmac_finish( sha256_context *ctx, unsigned char output[32] )
     sha256_update( ctx, tmpbuf, hlen );
     sha256_finish( ctx, output );
 
-    memset( tmpbuf, 0, sizeof( tmpbuf ) );
+    polarssl_zeroize( tmpbuf, sizeof( tmpbuf ) );
 }
 
 /*
@@ -446,18 +470,18 @@ void sha256_hmac( const unsigned char *key, size_t keylen,
 {
     sha256_context ctx;
 
+    sha256_init( &ctx );
     sha256_hmac_starts( &ctx, key, keylen, is224 );
     sha256_hmac_update( &ctx, input, ilen );
     sha256_hmac_finish( &ctx, output );
-
-    memset( &ctx, 0, sizeof( sha256_context ) );
+    sha256_free( &ctx );
 }
 
 #if defined(POLARSSL_SELF_TEST)
 /*
  * FIPS-180-2 test vectors
  */
-static unsigned char sha256_test_buf[3][57] = 
+static unsigned char sha256_test_buf[3][57] =
 {
     { "abc" },
     { "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" },
@@ -621,10 +645,12 @@ static const unsigned char sha256_hmac_test_sum[14][32] =
  */
 int sha256_self_test( int verbose )
 {
-    int i, j, k, buflen;
+    int i, j, k, buflen, ret = 0;
     unsigned char buf[1024];
     unsigned char sha256sum[32];
     sha256_context ctx;
+
+    sha256_init( &ctx );
 
     for( i = 0; i < 6; i++ )
     {
@@ -654,7 +680,8 @@ int sha256_self_test( int verbose )
             if( verbose != 0 )
                 polarssl_printf( "failed\n" );
 
-            return( 1 );
+            ret = 1;
+            goto exit;
         }
 
         if( verbose != 0 )
@@ -693,7 +720,8 @@ int sha256_self_test( int verbose )
             if( verbose != 0 )
                 polarssl_printf( "failed\n" );
 
-            return( 1 );
+            ret = 1;
+            goto exit;
         }
 
         if( verbose != 0 )
@@ -703,9 +731,12 @@ int sha256_self_test( int verbose )
     if( verbose != 0 )
         polarssl_printf( "\n" );
 
-    return( 0 );
+exit:
+    sha256_free( &ctx );
+
+    return( ret );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_SHA256_C */

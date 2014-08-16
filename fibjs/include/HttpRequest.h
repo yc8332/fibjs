@@ -21,7 +21,6 @@ class HttpRequest: public HttpRequest_base
 public:
     HttpRequest()
     {
-        m_response = new HttpResponse();
         clear();
         extMemory(4096);
     }
@@ -36,11 +35,13 @@ public:
     virtual result_t set_result(Variant newVal);
     virtual result_t get_body(obj_ptr<SeekableStream_base> &retVal);
     virtual result_t set_body(SeekableStream_base *newVal);
+    virtual result_t write(Buffer_base *data, exlib::AsyncEvent *ac);
     virtual result_t get_length(int64_t &retVal);
     virtual result_t clear();
     virtual result_t sendTo(Stream_base *stm, exlib::AsyncEvent *ac);
     virtual result_t readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac);
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
+    virtual result_t get_response(obj_ptr<Message_base> &retVal);
 
 public:
     // HttpMessage_base
@@ -70,7 +71,6 @@ public:
     virtual result_t set_address(const char *newVal);
     virtual result_t get_queryString(std::string &retVal);
     virtual result_t set_queryString(const char *newVal);
-    virtual result_t get_response(obj_ptr<HttpResponse_base> &retVal);
     virtual result_t get_cookie(obj_ptr<HttpCollection_base> &retVal);
     virtual result_t get_form(obj_ptr<HttpCollection_base> &retVal);
     virtual result_t get_query(obj_ptr<HttpCollection_base> &retVal);

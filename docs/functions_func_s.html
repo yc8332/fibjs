@@ -91,6 +91,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'搜索');
       <li><a href="functions_func_h.html#index_h"><span>h</span></a></li>
       <li><a href="functions_func_i.html#index_i"><span>i</span></a></li>
       <li><a href="functions_func_j.html#index_j"><span>j</span></a></li>
+      <li><a href="functions_func_k.html#index_k"><span>k</span></a></li>
       <li><a href="functions_func_l.html#index_l"><span>l</span></a></li>
       <li><a href="functions_func_m.html#index_m"><span>m</span></a></li>
       <li><a href="functions_func_n.html#index_n"><span>n</span></a></li>
@@ -147,6 +148,9 @@ $(document).ready(function(){initNavTree('functions_func_s.html','');});
 : <a class="el" href="d8/d00/classImage.html#ad87ff3e83842e1f90eabe33106fb84ef">Image</a>
 , <a class="el" href="d2/d07/classMongoCollection.html#abd1ea540422082aaf3a47087b84e8e7e">MongoCollection</a>
 </li>
+<li>score()
+: <a class="el" href="d8/dc0/classRedisSortedSet.html#a7d66540ff84098ad5d6a786b88cd36d2">RedisSortedSet</a>
+</li>
 <li>seek()
 : <a class="el" href="db/d67/classSeekableStream.html#a61e24c7dbe030d5b57bb141fdacbb068">SeekableStream</a>
 </li>
@@ -165,14 +169,27 @@ $(document).ready(function(){initNavTree('functions_func_s.html','');});
 , <a class="el" href="dd/d36/classssl.html#a1b74602d4f15362fe1a6aab2a8bdb79e">ssl</a>
 </li>
 <li>set()
-: <a class="el" href="d6/dbd/classHttpCollection.html#a957b8f7874f7d21f9d6c2a7b8b329e91">HttpCollection</a>
+: <a class="el" href="d6/dbd/classHttpCollection.html#a3df31bf39192d0b908c09af400468943">HttpCollection</a>
 , <a class="el" href="de/d0f/classLruCache.html#aac47180244d82cfa49c6cbfc3c6ae93a">LruCache</a>
+, <a class="el" href="db/d15/classRedis.html#a8fad3e27970320f768ba37dadde09e8e">Redis</a>
+, <a class="el" href="df/dbc/classRedisHash.html#ac1f0d251ddf8ffd73b9829e1fd27fe90">RedisHash</a>
+, <a class="el" href="d8/dc8/classRedisList.html#a4d7201eb2fab564735e94bfbd4520c32">RedisList</a>
+</li>
+<li>setBit()
+: <a class="el" href="db/d15/classRedis.html#aa049b28fabe3a5793718a0617cc349e7">Redis</a>
 </li>
 <li>setHeader()
 : <a class="el" href="dd/d77/classHttpMessage.html#ac5626cfdbeb975e16ab3b127b76b1864">HttpMessage</a>
 </li>
+<li>setNX()
+: <a class="el" href="db/d15/classRedis.html#af0e5289d7ddc2fa794a4ac6eee382d8c">Redis</a>
+, <a class="el" href="df/dbc/classRedisHash.html#a61b0ac109f970cbf51ea426f81310fe5">RedisHash</a>
+</li>
 <li>setPixel()
 : <a class="el" href="d8/d00/classImage.html#aa59563ed17d30a71f39ff1e1755deff4">Image</a>
+</li>
+<li>setRange()
+: <a class="el" href="db/d15/classRedis.html#af7bf9f409e81d623feda1fb04ced4719">Redis</a>
 </li>
 <li>setThickness()
 : <a class="el" href="d8/d00/classImage.html#a9b5de8a61435f88549dc600ca26e76d8">Image</a>
@@ -182,6 +199,9 @@ $(document).ready(function(){initNavTree('functions_func_s.html','');});
 </li>
 <li>setup()
 : <a class="el" href="de/d01/classtest.html#a38550424e855b291100020778b09064a">test</a>
+</li>
+<li>setXX()
+: <a class="el" href="db/d15/classRedis.html#a08352a52b0ff70c5cc30e1d1082b4bb1">Redis</a>
 </li>
 <li>sha1()
 : <a class="el" href="d5/df6/classhash.html#aeebd38030db2c9e6f51674759c74d050">hash</a>
@@ -233,10 +253,10 @@ $(document).ready(function(){initNavTree('functions_func_s.html','');});
 : <a class="el" href="da/d2d/classSslHandler.html#a40a6cc77561afea02e8f6468a66dbd2c">SslHandler</a>
 </li>
 <li>SslServer()
-: <a class="el" href="d8/d4d/classSslServer.html#a411f364ef81d954cf3d72456640fbde1">SslServer</a>
+: <a class="el" href="d8/d4d/classSslServer.html#a74078f3049c6446198b9cdab87961307">SslServer</a>
 </li>
 <li>SslSocket()
-: <a class="el" href="d7/d3f/classSslSocket.html#a7ec64273a450f8eb1de94a04b970de0b">SslSocket</a>
+: <a class="el" href="d7/d3f/classSslSocket.html#aaa1ff2e967332f3fbb8de3fa3d49d896">SslSocket</a>
 </li>
 <li>start()
 : <a class="el" href="d2/dd1/classcoroutine.html#aab30743ccc280e7950189c50a0afabde">coroutine</a>
@@ -251,10 +271,13 @@ $(document).ready(function(){initNavTree('functions_func_s.html','');});
 , <a class="el" href="d8/d61/classutil.html#a345a3de75e6748ef3237bda10c84c92d">util</a>
 </li>
 <li>store()
-: <a class="el" href="d9/de8/classGridFS.html#ae6b355ca7a7e7fae976d3b3789c35045">GridFS</a>
+: <a class="el" href="d9/de8/classGridFS.html#a811549d931a6845bfae574cd32dd1085">GridFS</a>
 </li>
 <li>strictEqual()
 : <a class="el" href="de/d1c/classassert.html#a2cb47b83fabc213b290b9b4ce7564f35">assert</a>
+</li>
+<li>strlen()
+: <a class="el" href="db/d15/classRedis.html#a0476f90872be6a8c94de65dfea6d6d05">Redis</a>
 </li>
 <li>system()
 : <a class="el" href="d4/d82/classprocess.html#a8ba452b49b82fff2709f27929faa57cf">process</a>

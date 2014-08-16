@@ -17,8 +17,8 @@ namespace fibjs
 result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
                                   exlib::AsyncEvent *ac)
 {
-    if (!ac)
-        return CALL_E_NOSYNC;
+    if (switchToAsync(ac))
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     time_t t;
     int i, ret;
@@ -36,7 +36,7 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
     {
         ret = havege_random(&hs, buf, sizeof(buf));
         if (ret != 0)
-            return _ssl::setError(ret);
+            return CHECK_ERROR(_ssl::setError(ret));
 
         memcpy(&strBuf[i], buf, size - i > sizeof(buf) ? sizeof(buf) : size - i);
     }
@@ -52,8 +52,8 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
 result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
                                         exlib::AsyncEvent *ac)
 {
-    if (!ac)
-        return CALL_E_NOSYNC;
+    if (switchToAsync(ac))
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     int i, ret;
     entropy_context entropy;
@@ -70,7 +70,7 @@ result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base> &retV
         if (ret != 0)
         {
             entropy_free(&entropy);
-            return _ssl::setError(ret);
+            return CHECK_ERROR(_ssl::setError(ret));
         }
 
         memcpy(&strBuf[i], buf, size - i > sizeof(buf) ? sizeof(buf) : size - i);

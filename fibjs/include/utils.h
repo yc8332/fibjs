@@ -117,28 +117,30 @@ typedef int result_t;
 #define CALL_E_NOTINSTANCE      (CALL_E_MAX - 8)
 // Invalid procedure call.
 #define CALL_E_INVALID_CALL      (CALL_E_MAX - 9)
+//  Re-entrant calls are not allowed.
+#define CALL_E_REENTRANT         (CALL_E_MAX - 10)
 // Invalid input data
-#define CALL_E_INVALID_DATA      (CALL_E_MAX - 10)
+#define CALL_E_INVALID_DATA      (CALL_E_MAX - 11)
 // Index was out of range.
-#define CALL_E_BADINDEX         (CALL_E_MAX - 11)
+#define CALL_E_BADINDEX         (CALL_E_MAX - 12)
 // Memory overflow error.
-#define CALL_E_OVERFLOW         (CALL_E_MAX - 12)
+#define CALL_E_OVERFLOW         (CALL_E_MAX - 13)
 // Collection is empty.
-#define CALL_E_EMPTY            (CALL_E_MAX - 13)
+#define CALL_E_EMPTY            (CALL_E_MAX - 14)
 // Operation now in progress.
-#define CALL_E_PENDDING         (CALL_E_MAX - 14)
+#define CALL_E_PENDDING         (CALL_E_MAX - 15)
 // Operation not support synchronous call.
-#define CALL_E_NOSYNC           (CALL_E_MAX - 15)
+#define CALL_E_NOSYNC           (CALL_E_MAX - 16)
 // Operation not support asynchronous call.
-#define CALL_E_NOASYNC          (CALL_E_MAX - 16)
+#define CALL_E_NOASYNC          (CALL_E_MAX - 17)
 // Internal error.
-#define CALL_E_INTERNAL         (CALL_E_MAX - 17)
+#define CALL_E_INTERNAL         (CALL_E_MAX - 18)
 // Invalid return type.
-#define CALL_E_RETURN_TYPE      (CALL_E_MAX - 18)
+#define CALL_E_RETURN_TYPE      (CALL_E_MAX - 19)
 // Exception occurred.
-#define CALL_E_EXCEPTION        (CALL_E_MAX - 19)
+#define CALL_E_EXCEPTION        (CALL_E_MAX - 20)
 // Javascript error.
-#define CALL_E_JAVASCRIPT       (CALL_E_MAX - 20)
+#define CALL_E_JAVASCRIPT       (CALL_E_MAX - 21)
 
 #define CALL_E_MIN              -100100
 
@@ -224,18 +226,18 @@ typedef int result_t;
 
 #define PROPERTY_VAL(t) \
     t v0; \
-    hr = SafeGetValue(value, v0, bStrict); \
+    hr = GetArgumentValue(value, v0, bStrict); \
     if(hr < 0)break;
 
 #define ARG(t, n) \
     t v##n; \
-    hr = SafeGetValue(args[n], v##n, bStrict); \
+    hr = GetArgumentValue(args[n], v##n, bStrict); \
     if(hr < 0)break;
 
 #define OPT_ARG(t, n, d) \
     t v##n = (d); \
     if((n) < argc && !args[n]->IsUndefined()){ \
-        hr = SafeGetValue(args[n], v##n, bStrict); \
+        hr = GetArgumentValue(args[n], v##n, bStrict); \
         if(hr < 0)break;}
 
 #define DECLARE_CLASSINFO(c) \
@@ -272,6 +274,12 @@ typedef int result_t;
     virtual void leave() \
     {} \
      
+
+#ifndef ARRAYSIZE
+#define ARRAYSIZE(a) \
+    ((sizeof(a) / sizeof(*(a))) / static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
+#endif
+
 #ifdef _MSC_VER
 
 #ifndef INFINITY
@@ -318,12 +326,17 @@ public:
         return m_v;
     }
 
+    std::string toString() const
+    {
+        return std::string(m_v, tmp->length());
+    }
+
 private:
     v8::String::Utf8Value *tmp;
     const char *m_v;
 };
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, arg_string &n, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, arg_string &n, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -334,7 +347,19 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, arg_string &n, bool bStrict
     return n.set_value(v);
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, double &n, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, std::string &n, bool bStrict = false)
+{
+    arg_string str;
+
+    result_t hr = GetArgumentValue(v, str, bStrict);
+    if (hr < 0)
+        return hr;
+
+    n = str.toString();
+    return 0;
+}
+
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, double &n, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -356,11 +381,11 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, double &n, bool bStrict)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, int64_t &n, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, int64_t &n, bool bStrict = false)
 {
     double num;
 
-    result_t hr = SafeGetValue(v, num, bStrict);
+    result_t hr = GetArgumentValue(v, num, bStrict);
     if (hr < 0)
         return hr;
 
@@ -372,11 +397,11 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, int64_t &n, bool bStrict)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, int32_t &n, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, int32_t &n, bool bStrict = false)
 {
     double num;
 
-    result_t hr = SafeGetValue(v, num, bStrict);
+    result_t hr = GetArgumentValue(v, num, bStrict);
     if (hr < 0)
         return hr;
 
@@ -388,7 +413,7 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, int32_t &n, bool bStrict)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, bool &n, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, bool &n, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -400,7 +425,7 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, bool &n, bool bStrict)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, date_t &d, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, date_t &d, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -412,14 +437,17 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, date_t &d, bool bStrict)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, Variant &d, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, Variant &d, bool bStrict = false)
 {
     d = v;
     return 0;
 }
 
+class Buffer_base;
+result_t GetArgumentValue(v8::Local<v8::Value> v, obj_ptr<Buffer_base> &vr, bool bStrict = false);
+
 template<class T>
-inline result_t SafeGetValue(v8::Local<v8::Value> v, obj_ptr<T> &vr, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, obj_ptr<T> &vr, bool bStrict = false)
 {
     vr = T::getInstance(v);
     if (vr == NULL)
@@ -428,7 +456,7 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, obj_ptr<T> &vr, bool bStric
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Object> &vr, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Object> &vr, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -440,7 +468,7 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Object> &vr, 
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Array> &vr, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Array> &vr, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -452,13 +480,13 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Array> &vr, b
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Value> &vr, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Value> &vr, bool bStrict = false)
 {
     vr = v;
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Function> &vr, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Function> &vr, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -468,6 +496,16 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Function> &vr
 
     vr = v8::Local<v8::Function>::Cast(v);
     return 0;
+}
+
+template<typename T>
+result_t GetConfigValue(v8::Local<v8::Object> o, const char *key, T &n, bool bStrict = false)
+{
+    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate, key));
+    if (IsEmpty(v))
+        return CALL_E_PARAMNOTOPTIONAL;
+
+    return GetArgumentValue(v, n, bStrict);
 }
 
 inline v8::Local<v8::Value> GetReturnValue(int32_t v)
@@ -605,38 +643,29 @@ inline bool isUrlSlash(char ch)
     return ch == '/';
 }
 
-class _step_checker
+void asyncLog(int priority, std::string msg);
+
+inline result_t _error_checker(result_t hr, const char *file, int line)
 {
-public:
-    static _step_checker &g()
+    if (hr < 0 && hr != CALL_E_NOSYNC && hr != CALL_E_NOASYNC && hr != CALL_E_PENDDING)
     {
-        static _step_checker sc;
-        return sc;
+        std::string str = file;
+        char tmp[64];
+
+        sprintf(tmp, ":%d ", line);
+        str.append(tmp);
+
+        asyncLog(3, str + getResultMessage(hr));
     }
 
-    void chk(int n, const char *file, int line)
-    {
-        int n1 = exlib::atom_inc(&m_step);
-        if (n1 != n)
-            printf("[%s:%d]: %d, %d\n", file, line, n, n1);
-    }
+    return hr;
+}
 
-    void rst()
-    {
-        m_step = 0;
-    }
-
-private:
-    _step_checker() :
-        m_step(0)
-    {
-    }
-
-    int m_step;
-};
-
-#define STEP_CHECK(n) _step_checker::g().chk((n), __FILE__, __LINE__)
-#define STEP_RESET() _step_checker::g().rst()
+#ifndef NDEBUG
+#define CHECK_ERROR(hr) _error_checker((hr), __FILE__, __LINE__)
+#else
+#define CHECK_ERROR(hr) (hr)
+#endif
 
 void flushLog();
 

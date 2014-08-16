@@ -13,6 +13,7 @@
 #include "Buffer.h"
 #include "MemoryStream.h"
 #include "ifs/zlib.h"
+#include "ifs/console.h"
 
 namespace fibjs
 {
@@ -35,23 +36,35 @@ enum
 };
 
 result_t HttpHandler_base::_new(v8::Local<v8::Value> hdlr,
-                                obj_ptr<HttpHandler_base> &retVal)
+                                obj_ptr<HttpHandler_base> &retVal,
+                                v8::Local<v8::Object> This)
 {
     obj_ptr<Handler_base> hdlr1;
     result_t hr = JSHandler::New(hdlr, hdlr1);
     if (hr < 0)
         return hr;
 
-    retVal = new HttpHandler(hdlr1);
+    obj_ptr<HttpHandler> ht_hdlr = new HttpHandler();
+    ht_hdlr->wrap(This);
+    ht_hdlr->setHandler(hdlr1);
+
+    retVal = ht_hdlr;
+
     return 0;
 }
 
-HttpHandler::HttpHandler(Handler_base *hdlr) :
-    m_hdlr(hdlr), m_crossDomain(false), m_forceGZIP(false), m_maxHeadersCount(
+HttpHandler::HttpHandler() :
+    m_crossDomain(false), m_forceGZIP(false), m_maxHeadersCount(
         128), m_maxUploadSize(67108864)
 {
     m_stats = new Stats();
     m_stats->init(s_staticCounter, 2, s_Counter, 6);
+}
+
+void HttpHandler::setHandler(Handler_base *hdlr)
+{
+    wrap()->SetHiddenValue(v8::String::NewFromUtf8(isolate, "handler"), hdlr->wrap());
+    m_hdlr = hdlr;
 }
 
 static std::string s_crossdomain;
@@ -69,7 +82,10 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             m_stmBuffered->set_EOL("\r\n");
 
             m_req = new HttpRequest();
-            m_req->get_response(m_rep);
+
+            obj_ptr<Message_base> m;
+            m_req->get_response(m);
+            m_rep = (HttpResponse_base *)(Message_base *)m;
 
             m_req->set_maxHeadersCount(pThis->m_maxHeadersCount);
             m_req->set_maxUploadSize(pThis->m_maxUploadSize);
@@ -96,6 +112,9 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         static int invoke(asyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
+
+            if (n == CALL_RETURN_NULL)
+                return pThis->done(CALL_RETURN_NULL);
 
             pThis->m_pThis->m_stats->inc(HTTP_TOTAL);
             pThis->m_pThis->m_stats->inc(HTTP_REQUEST);
@@ -303,6 +322,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
             if (is(send))
             {
+                asyncLog(console_base::_ERROR, "HttpHandler: " + getResultMessage(v));
                 m_rep->set_status(500);
                 return 0;
             }
@@ -320,7 +340,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             }
 
             m_pThis->m_stats->dec(HTTP_PENDDING);
-            return v;
+            return done(CALL_RETURN_NULL);
         }
 
     private:
@@ -334,7 +354,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     };
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Stream_base> stm = Stream_base::getInstance(v);
     if (stm == NULL)
@@ -346,7 +366,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     }
 
     if (stm == NULL)
-        return CALL_E_BADVARTYPE;
+        return CHECK_ERROR(CALL_E_BADVARTYPE);
 
     return (new asyncInvoke(this, stm, ac))->post(0);
 }
@@ -384,7 +404,7 @@ result_t HttpHandler::get_maxHeadersCount(int32_t &retVal)
 result_t HttpHandler::set_maxHeadersCount(int32_t newVal)
 {
     if (newVal < 0)
-        return CALL_E_OUTRANGE;
+        return CHECK_ERROR(CALL_E_OUTRANGE);
 
     m_maxHeadersCount = newVal;
     return 0;
@@ -399,7 +419,7 @@ result_t HttpHandler::get_maxUploadSize(int32_t &retVal)
 result_t HttpHandler::set_maxUploadSize(int32_t newVal)
 {
     if (newVal < 0)
-        return CALL_E_OUTRANGE;
+        return CHECK_ERROR(CALL_E_OUTRANGE);
 
     m_maxUploadSize = newVal;
     return 0;

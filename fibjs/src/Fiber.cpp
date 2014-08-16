@@ -59,7 +59,7 @@ public:
 
     result_t get_caller(obj_ptr<Fiber_base> &retVal)
     {
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
     }
 
 } s_null;
@@ -128,9 +128,7 @@ void JSFiber::callFunction1(v8::Local<v8::Function> func,
     retVal = func->Call(wrap(), argCount, args);
     if (try_catch.HasCaught())
     {
-        v8::Local<v8::Value> err = try_catch.Exception();
         m_error = true;
-
         ReportException(try_catch, 0);
     }
 }

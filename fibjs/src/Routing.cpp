@@ -14,9 +14,11 @@ namespace fibjs
 {
 
 result_t Routing_base::_new(v8::Local<v8::Object> map,
-                            obj_ptr<Routing_base> &retVal)
+                            obj_ptr<Routing_base> &retVal,
+                            v8::Local<v8::Object> This)
 {
     obj_ptr<Routing_base> r = new Routing();
+    r->wrap(This);
 
     result_t hr = r->append(map);
     if (hr < 0)
@@ -36,7 +38,7 @@ result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     int ovector[RE_SIZE];
 
     if (msg == NULL)
-        return CALL_E_BADVARTYPE;
+        return CHECK_ERROR(CALL_E_BADVARTYPE);
 
     std::string value;
 
@@ -103,7 +105,7 @@ result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         }
     }
 
-    return Runtime::setError("unknown routing.");
+    return CHECK_ERROR(Runtime::setError("unknown routing."));
 }
 
 result_t Routing::append(const char *pattern, Handler_base *hdlr)
@@ -121,15 +123,29 @@ result_t Routing::append(const char *pattern, Handler_base *hdlr)
         char buf[1024];
 
         sprintf(buf, "Compilation failed at offset %d: %s.", erroffset, error);
-        return Runtime::setError(buf);
+        return CHECK_ERROR(Runtime::setError(buf));
     }
 
     extra = pcre_study(re, PCRE_STUDY_JIT_COMPILE, &error);
     if (extra == NULL)
     {
         pcre_free(re);
-        return Runtime::setError(error);
+        return CHECK_ERROR(Runtime::setError(error));
     }
+
+    v8::Local<v8::String> k = v8::String::NewFromUtf8(isolate, "handler");
+    v8::Local<v8::Value> v = wrap()->GetHiddenValue(k);
+    v8::Local<v8::Array> a;
+
+    if (IsEmpty(v))
+    {
+        a = v8::Array::New(isolate);
+        wrap()->SetHiddenValue(k, a);
+    }
+    else
+        a = v8::Local<v8::Array>::Cast(v);
+
+    a->Set((int32_t)m_array.size(), hdlr->wrap());
 
     obj_ptr<rule> r = new rule(re, extra, hdlr);
     m_array.append(r);

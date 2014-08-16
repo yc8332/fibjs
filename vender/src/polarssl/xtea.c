@@ -1,7 +1,7 @@
 /*
  *  An 32-bit implementation of the XTEA algorithm
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_XTEA_C)
 
@@ -36,6 +40,11 @@
 #endif
 
 #if !defined(POLARSSL_XTEA_ALT)
+
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
 
 /*
  * 32-bit integer manipulation macros (big endian)
@@ -60,6 +69,19 @@
 }
 #endif
 
+void xtea_init( xtea_context *ctx )
+{
+    memset( ctx, 0, sizeof( xtea_context ) );
+}
+
+void xtea_free( xtea_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    polarssl_zeroize( ctx, sizeof( xtea_context ) );
+}
+
 /*
  * XTEA key schedule
  */
@@ -67,7 +89,7 @@ void xtea_setup( xtea_context *ctx, const unsigned char key[16] )
 {
     int i;
 
-    memset(ctx, 0, sizeof(xtea_context));
+    memset( ctx, 0, sizeof(xtea_context) );
 
     for( i = 0; i < 4; i++ )
     {
@@ -138,7 +160,7 @@ int xtea_crypt_cbc( xtea_context *ctx, int mode, size_t length,
             memcpy( temp, input, 8 );
             xtea_crypt_ecb( ctx, mode, input, output );
 
-            for(i = 0; i < 8; i++)
+            for( i = 0; i < 8; i++ )
                 output[i] = (unsigned char)( output[i] ^ iv[i] );
 
             memcpy( iv, temp, 8 );
@@ -219,10 +241,11 @@ static const unsigned char xtea_test_ct[6][8] =
  */
 int xtea_self_test( int verbose )
 {
-    int i;
+    int i, ret = 0;
     unsigned char buf[8];
     xtea_context ctx;
 
+    xtea_init( &ctx );
     for( i = 0; i < 6; i++ )
     {
         if( verbose != 0 )
@@ -238,7 +261,8 @@ int xtea_self_test( int verbose )
             if( verbose != 0 )
                 polarssl_printf( "failed\n" );
 
-            return( 1 );
+            ret = 1;
+            goto exit;
         }
 
         if( verbose != 0 )
@@ -248,9 +272,12 @@ int xtea_self_test( int verbose )
     if( verbose != 0 )
         polarssl_printf( "\n" );
 
-    return( 0 );
+exit:
+    xtea_free( &ctx );
+
+    return( ret );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_XTEA_C */

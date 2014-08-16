@@ -7,6 +7,7 @@
 
 #include "JSHandler.h"
 #include "Fiber.h"
+#include "SandBox.h"
 #include "ifs/Message.h"
 #include "ifs/global.h"
 #include "ifs/mq.h"
@@ -30,7 +31,7 @@ inline result_t msgMethod(Message_base *msg, std::string &method)
         if (p != p1)
             break;
         if (!*p)
-            return CALL_E_INVALID_CALL;
+            return CHECK_ERROR(Runtime::setError("method \"" + method + "\" not found."));
         p++;
         p1 = p;
     }
@@ -45,13 +46,14 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                            exlib::AsyncEvent *ac)
 {
     if (ac)
-        return CALL_E_NOASYNC;
+        return CHECK_ERROR(CALL_E_NOASYNC);
 
     v8::Local<v8::Object> o = v->wrap();
 
     obj_ptr<Message_base> msg = Message_base::getInstance(v);
     v8::Local<v8::Value> a = v8::Local<v8::Value>::New(isolate, o);
-    v8::Local<v8::Value> hdlr = v8::Local<v8::Value>::New(isolate, m_handler);
+    v8::Local<v8::Value> hdlr = wrap()->GetHiddenValue(v8::String::NewFromUtf8(isolate, "handler"));
+
     result_t hr;
     bool bResult = false;
 
@@ -59,7 +61,10 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     {
         if (hdlr->IsFunction())
         {
+            v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(hdlr);
             obj_ptr<List_base> params;
+            std::vector<v8::Local<v8::Value> > argv;
+            v8::Local<v8::Value> *pargv;
             int32_t len = 0, i;
 
             if (msg != NULL)
@@ -70,8 +75,6 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
             if (len > 0)
             {
-                std::vector<v8::Local<v8::Value> > argv;
-
                 argv.resize(len + 1);
                 argv[0] = a;
 
@@ -82,15 +85,27 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                     argv[i + 1] = v;
                 }
 
-                JSFiber::call(v8::Local<v8::Function>::Cast(hdlr),
-                              argv.data(), len + 1, hdlr);
+                pargv = argv.data();
             }
             else
-                JSFiber::call(v8::Local<v8::Function>::Cast(hdlr), &a, 1,
-                              hdlr);
+                pargv = &a;
 
-            if (hdlr.IsEmpty())
-                return CALL_E_INTERNAL;
+            {
+                v8::TryCatch try_catch;
+                hdlr = func->Call(v8::Undefined(isolate), len + 1, pargv);
+                if (try_catch.HasCaught())
+                {
+                    v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
+                            isolate, 1, v8::StackTrace::kScriptId);
+                    if (stackTrace->GetFrameCount() > 0)
+                    {
+                        try_catch.ReThrow();
+                        return CHECK_ERROR(CALL_E_JAVASCRIPT);
+                    }
+                    else
+                        return CHECK_ERROR(Runtime::setError(GetException(try_catch, 0)));
+                }
+            }
 
             if (IsEmpty (hdlr))
                 return CALL_RETURN_NULL;
@@ -103,7 +118,7 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                 return 0;
 
             if (msg == NULL)
-                return CALL_E_BADVARTYPE;
+                return CHECK_ERROR(CALL_E_BADVARTYPE);
 
             if (bResult)
             {
@@ -121,7 +136,7 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                                                v8::String::kNormalString,
                                                (int) method.length()));
             if (IsEmpty (hdlr))
-                return CALL_E_INVALID_CALL;
+                return CHECK_ERROR(Runtime::setError("method \"" + method + "\" not found."));
 
             bResult = false;
         }
@@ -131,7 +146,7 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return CALL_RETURN_NULL;
         }
         else
-            return CALL_E_INTERNAL;
+            return CHECK_ERROR(CALL_E_INTERNAL);
     }
 
     return 0;
@@ -165,7 +180,9 @@ result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
         {
             {
                 JSFiber::scope s;
-                s.m_hr = m_hr = js_invoke(m_pThis, m_v, m_retVal, NULL);
+                m_hr = js_invoke(m_pThis, m_v, m_retVal, NULL);
+                if (m_hr == CALL_E_EXCEPTION)
+                    m_message = Runtime::errMessage();
             }
 
             s_acPool.put(this);
@@ -173,6 +190,8 @@ result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
 
         virtual void invoke()
         {
+            if (m_hr == CALL_E_EXCEPTION)
+                Runtime::setError(m_message);
             post(m_hr);
         }
 
@@ -181,6 +200,7 @@ result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
         obj_ptr<object_base> m_v;
         obj_ptr<Handler_base> &m_retVal;
         result_t m_hr;
+        std::string m_message;
     };
 
     if (!ac)

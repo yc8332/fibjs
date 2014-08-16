@@ -36,6 +36,19 @@ describe("net", function() {
 		assert.equal(net.backend(), backend);
 	});
 
+	it("async gc", function() {
+		var s1 = new net.Socket(net_config.family, net.SOCK_STREAM);
+		var num = 0;
+
+		(function() {
+			num = 1;
+		}).start();
+		s1 = undefined;
+		assert.equal(num, 0);
+		GC();
+		assert.equal(num, 1);
+	});
+
 	it("echo", function() {
 		function connect(c) {
 			console.log(c.remoteAddress, c.remotePort, "->",
@@ -97,7 +110,7 @@ describe("net", function() {
 			while (true) {
 				var c = s.accept();
 
-				// c.write(new Buffer(str));
+				// c.write(str);
 
 				fs.writeFile('net_temp_000001', str);
 				var f = fs.open('net_temp_000001');
@@ -141,15 +154,15 @@ describe("net", function() {
 			while (true) {
 				var c = s.accept();
 
-				c.write(new Buffer('a'));
+				c.write('a');
 				coroutine.sleep(100);
-				c.write(new Buffer('a'));
+				c.write('a');
 				coroutine.sleep(100);
-				c.write(new Buffer('b'));
+				c.write('b');
 				coroutine.sleep(100);
-				c.write(new Buffer('c'));
+				c.write('c');
 				coroutine.sleep(100);
-				c.write(new Buffer('d'));
+				c.write('d');
 				coroutine.sleep(100);
 
 				c.close();
@@ -166,6 +179,80 @@ describe("net", function() {
 		assert.equal('a', c1.recv(100));
 		assert.equal('abc', c1.read(3));
 		assert.equal('d', c1.read(3));
+	});
+
+	it("re-entrant", function() {
+		function accept2(s) {
+			while (true) {
+				s.accept();
+			}
+		}
+
+		var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
+		s2.bind(8083);
+		s2.listen();
+		accept2.start(s2);
+
+		coroutine.sleep(10);
+		assert.throws(function() {
+			s2.accept();
+		});
+
+		function recv2(s) {
+			s.recv();
+		}
+
+		var c1 = new net.Socket();
+		c1.connect('127.0.0.1', 8083);
+		recv2.start(c1);
+
+		coroutine.sleep(10);
+		assert.throws(function() {
+			c1.recv();
+		});
+
+		function send2(s) {
+			var b = new Buffer("aaaaaaaa");
+			b.resize(10240);
+			while (true)
+				s.send(b);
+		}
+
+		var c1 = new net.Socket();
+		c1.connect('127.0.0.1', 8083);
+		send2.start(c1);
+
+		coroutine.sleep(10);
+		assert.throws(function() {
+			var b = new Buffer("aaaaaaaa");
+			c1.send(b);
+		});
+
+		function accept3(s) {
+			var c = s.accept();
+			c.send(c.recv());
+		}
+
+		var s3 = new net.Socket(net_config.family, net.SOCK_STREAM);
+		s3.bind(8084);
+		s3.listen();
+		accept3.start(s3);
+
+		var st = 0;
+
+		function send3(s) {
+			st = 1;
+			coroutine.sleep(100);
+			s.send(new Buffer("aaa"));
+		}
+
+		var c1 = new net.Socket();
+		c1.connect('127.0.0.1', 8084);
+		send3.start(c1);
+
+		assert.equal(st, 0);
+		assert.equal(c1.recv().toString(), "aaa");
+		assert.equal(st, 1);
 	});
 
 	it("bind same port", function() {
@@ -271,4 +358,4 @@ describe("net", function() {
 	});
 });
 
-// test.run(console.DEBUG);
+//test.run(console.DEBUG);

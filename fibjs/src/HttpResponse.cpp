@@ -11,7 +11,7 @@
 namespace fibjs
 {
 
-result_t HttpResponse_base::_new(obj_ptr<HttpResponse_base> &retVal)
+result_t HttpResponse_base::_new(obj_ptr<HttpResponse_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new HttpResponse();
     return 0;
@@ -40,6 +40,11 @@ result_t HttpResponse::get_body(obj_ptr<SeekableStream_base> &retVal)
 result_t HttpResponse::set_body(SeekableStream_base *newVal)
 {
     return m_message.set_body(newVal);
+}
+
+result_t HttpResponse::write(Buffer_base *data, exlib::AsyncEvent *ac)
+{
+    return m_message.write(data, ac);
 }
 
 result_t HttpResponse::get_length(int64_t &retVal)
@@ -208,7 +213,7 @@ public:
 result_t HttpResponse::sendTo(Stream_base *stm, exlib::AsyncEvent *ac)
 {
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     int pos = shortcut[m_status / 100 - 1] + m_status % 100;
     std::string strCommand;
@@ -252,7 +257,7 @@ result_t HttpResponse::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
                     || !qisdigit(pThis->m_strLine[11])
                     || (pThis->m_strLine.length() > 12
                         && qisdigit(pThis->m_strLine[12])))
-                return Runtime::setError("bad protocol: " + pThis->m_strLine);
+                return CHECK_ERROR(Runtime::setError("bad protocol: " + pThis->m_strLine));
 
             pThis->m_pThis->set_status(atoi(pThis->m_strLine.c_str() + 8));
             pThis->m_strLine.resize(8);
@@ -272,7 +277,7 @@ result_t HttpResponse::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
     };
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncReadFrom(this, stm, ac))->post(0);
 }
@@ -280,6 +285,11 @@ result_t HttpResponse::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
 result_t HttpResponse::get_stream(obj_ptr<Stream_base> &retVal)
 {
     return m_message.get_stream(retVal);
+}
+
+result_t HttpResponse::get_response(obj_ptr<Message_base> &retVal)
+{
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
 result_t HttpResponse::get_status(int32_t &retVal)

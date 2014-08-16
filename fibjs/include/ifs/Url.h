@@ -1,6 +1,7 @@
 /***************************************************************************
- *   Copyright (C) 2012 by Leo Hoo                                         *
- *   lion@9465.net                                                         *
+ *                                                                         *
+ *   This file was automatically generated using idlc.js                   *
+ *   PLEASE DO NOT EDIT!!!!                                                *
  *                                                                         *
  ***************************************************************************/
 
@@ -20,8 +21,8 @@ class Url_base : public object_base
 {
 public:
 	// Url_base
-	static result_t _new(v8::Local<v8::Object> args, obj_ptr<Url_base>& retVal);
-	static result_t _new(const char* url, obj_ptr<Url_base>& retVal);
+	static result_t _new(v8::Local<v8::Object> args, obj_ptr<Url_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(const char* url, obj_ptr<Url_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t parse(const char* url) = 0;
 	virtual result_t format(v8::Local<v8::Object> args) = 0;
 	virtual result_t resolve(const char* url, obj_ptr<Url_base>& retVal) = 0;
@@ -284,13 +285,13 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Object>, 0);
 
-		hr = _new(v0, vr);
+		hr = _new(v0, vr, args.This());
 
 		METHOD_OVER(1, 0);
 
 		OPT_ARG(arg_string, 0, "");
 
-		hr = _new(v0, vr);
+		hr = _new(v0, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

@@ -1,6 +1,7 @@
 var classMessage =
 [
     [ "Message", "d6/d28/classMessage.html#a4fc4f717b634e66070366cb7722d7761", null ],
+    [ "write", "d6/d28/classMessage.html#a42fdd87346cb529e34e1e12e41afe2bc", null ],
     [ "clear", "d6/d28/classMessage.html#a8ed24470ab5214955c70bb108209f9d4", null ],
     [ "sendTo", "d6/d28/classMessage.html#a8c456b35a88228f954974592e9b5c5ab", null ],
     [ "readFrom", "d6/d28/classMessage.html#ad4a8dc64a0be31e60e98c671bc630203", null ],
@@ -13,5 +14,6 @@ var classMessage =
     [ "result", "d6/d28/classMessage.html#aff37dc807536324e1b576ffec75770b0", null ],
     [ "body", "d6/d28/classMessage.html#a102e4b9b4a800bf24fd01a66df49b489", null ],
     [ "length", "d6/d28/classMessage.html#a26e77ec52998a43c1b97fd4b7229283c", null ],
-    [ "stream", "d6/d28/classMessage.html#a9b19686184c56df8c1fca416751a71b3", null ]
+    [ "stream", "d6/d28/classMessage.html#a9b19686184c56df8c1fca416751a71b3", null ],
+    [ "response", "d6/d28/classMessage.html#a78167fa1a78f782d15ea7122333eb53d", null ]
 ];

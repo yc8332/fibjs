@@ -8,10 +8,11 @@
 #include "ifs/assert.h"
 #include "ifs/encoding.h"
 #include "QuickArray.h"
-#include <sstream>
 
 namespace fibjs
 {
+
+std::string json_format(v8::Local<v8::Value> obj);
 
 class _msg
 {
@@ -119,32 +120,27 @@ public:
     std::string str()
     {
         std::string str;
-        std::string s;
 
         str = strs[0];
 
         if (strs[1])
         {
-            encoding_base::jsonEncode(*vs[0], s);
-            str.append(s);
+            str.append(json_format(*vs[0]));
             str.append(strs[1]);
 
             if (strs[2])
             {
-                encoding_base::jsonEncode(*vs[1], s);
-                str.append(s);
+                str.append(json_format(*vs[1]));
                 str.append(strs[2]);
 
                 if (strs[3])
                 {
-                    encoding_base::jsonEncode(*vs[2], s);
-                    str.append(s);
+                    str.append(json_format(*vs[2]));
                     str.append(strs[3]);
 
                     if (strs[4])
                     {
-                        encoding_base::jsonEncode(*vs[3], s);
-                        str.append(s);
+                        str.append(json_format(*vs[3]));
                         str.append(strs[4]);
                     }
                 }
@@ -373,17 +369,17 @@ result_t assert_base::closeTo(v8::Local<v8::Value> actual,
 
     n = actual->NumberValue();
     if (isnan(n))
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     n1 = expected->NumberValue();
     if (isnan(n1))
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     n -= n1;
 
     n1 = delta->NumberValue();
     if (isnan(n1))
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (n < 0)
         n = -n;
@@ -401,17 +397,17 @@ result_t assert_base::notCloseTo(v8::Local<v8::Value> actual,
 
     n = actual->NumberValue();
     if (isnan(n))
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     n1 = expected->NumberValue();
     if (isnan(n1))
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     n -= n1;
 
     n1 = delta->NumberValue();
     if (isnan(n1))
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (n < 0)
         n = -n;
@@ -458,7 +454,7 @@ result_t assert_base::lessThan(v8::Local<v8::Value> actual,
     double r = valcmp(actual, expected);
 
     if (isnan(r))
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     _test(r < 0, _msg(msg, "expected ", actual, " to be below ", expected));
     return 0;
@@ -470,7 +466,7 @@ result_t assert_base::notLessThan(v8::Local<v8::Value> actual,
     double r = valcmp(actual, expected);
 
     if (isnan(r))
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     _test(r >= 0, _msg(msg, "expected ", actual, " to be at least ", expected));
     return 0;
@@ -482,7 +478,7 @@ result_t assert_base::greaterThan(v8::Local<v8::Value> actual,
     double r = valcmp(actual, expected);
 
     if (isnan(r))
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     _test(r > 0, _msg(msg, "expected ", actual, " to be above ", expected));
     return 0;
@@ -494,7 +490,7 @@ result_t assert_base::notGreaterThan(v8::Local<v8::Value> actual,
     double r = valcmp(actual, expected);
 
     if (isnan(r))
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     _test(r <= 0, _msg(msg, "expected ", actual, " to be at most ", expected));
     return 0;
@@ -669,7 +665,7 @@ result_t assert_base::typeOf(v8::Local<v8::Value> actual, const char *type,
     if (!qstricmp(type, "undefined"))
         return isUndefined(actual, msg);
 
-    return CALL_E_INVALIDARG;
+    return CHECK_ERROR(CALL_E_INVALIDARG);
 }
 
 result_t assert_base::notTypeOf(v8::Local<v8::Value> actual, const char *type,
@@ -692,14 +688,14 @@ result_t assert_base::notTypeOf(v8::Local<v8::Value> actual, const char *type,
     if (!qstricmp(type, "undefined"))
         return isDefined(actual, msg);
 
-    return CALL_E_INVALIDARG;
+    return CHECK_ERROR(CALL_E_INVALIDARG);
 }
 
 result_t has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
                   bool &retVal)
 {
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Object> v = v8::Local<v8::Object>::Cast(object);
     retVal = v->Has(prop);
@@ -735,7 +731,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
                        bool &retVal)
 {
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Object> v = v8::Local<v8::Object>::Cast(object);
     v8::String::Utf8Value s(prop);
@@ -793,7 +789,7 @@ result_t has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
                  v8::Local<v8::Value> value, bool &retVal, v8::Local<v8::Value> &got)
 {
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Object> v = v8::Local<v8::Object>::Cast(object);
     got = v->Get(prop);
@@ -840,7 +836,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
                       v8::Local<v8::Value> value, bool &retVal, v8::Local<v8::Value> &got)
 {
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Object> v = v8::Local<v8::Object>::Cast(object);
     v8::String::Utf8Value s(prop);
@@ -905,9 +901,13 @@ result_t assert_base::deepPropertyNotVal(v8::Local<v8::Value> object,
 
 result_t assert_base::throws(v8::Local<v8::Function> block, const char *msg)
 {
-    v8::TryCatch try_catch;
-    block->Call(block, 0, NULL);
-    _test(try_catch.HasCaught(), _msg(msg, "Missing expected exception."));
+    bool err;
+    {
+        v8::TryCatch try_catch;
+        block->Call(v8::Undefined(isolate), 0, NULL);
+        err = try_catch.HasCaught();
+    }
+    _test(err, _msg(msg, "Missing expected exception."));
 
     return 0;
 }
@@ -915,9 +915,13 @@ result_t assert_base::throws(v8::Local<v8::Function> block, const char *msg)
 result_t assert_base::doesNotThrow(v8::Local<v8::Function> block,
                                    const char *msg)
 {
-    v8::TryCatch try_catch;
-    block->Call(block, 0, NULL);
-    _test(!try_catch.HasCaught(), _msg(msg, "Got unwanted exception."));
+    bool err;
+    {
+        v8::TryCatch try_catch;
+        block->Call(v8::Undefined(isolate), 0, NULL);
+        err = try_catch.HasCaught();
+    }
+    _test(!err, _msg(msg, "Got unwanted exception."));
 
     return 0;
 }

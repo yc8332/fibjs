@@ -1,6 +1,7 @@
 /***************************************************************************
- *   Copyright (C) 2012 by Leo Hoo                                         *
- *   lion@9465.net                                                         *
+ *                                                                         *
+ *   This file was automatically generated using idlc.js                   *
+ *   PLEASE DO NOT EDIT!!!!                                                *
  *                                                                         *
  ***************************************************************************/
 
@@ -22,9 +23,9 @@ class Cipher_base : public object_base
 {
 public:
 	// Cipher_base
-	static result_t _new(int32_t provider, Buffer_base* key, obj_ptr<Cipher_base>& retVal);
-	static result_t _new(int32_t provider, int32_t mode, Buffer_base* key, obj_ptr<Cipher_base>& retVal);
-	static result_t _new(int32_t provider, int32_t mode, Buffer_base* key, Buffer_base* iv, obj_ptr<Cipher_base>& retVal);
+	static result_t _new(int32_t provider, Buffer_base* key, obj_ptr<Cipher_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(int32_t provider, int32_t mode, Buffer_base* key, obj_ptr<Cipher_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(int32_t provider, int32_t mode, Buffer_base* key, Buffer_base* iv, obj_ptr<Cipher_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_name(std::string& retVal) = 0;
 	virtual result_t get_keySize(int32_t& retVal) = 0;
 	virtual result_t get_ivSize(int32_t& retVal) = 0;
@@ -141,7 +142,7 @@ namespace fibjs
 		ARG(int32_t, 0);
 		ARG(obj_ptr<Buffer_base>, 1);
 
-		hr = _new(v0, v1, vr);
+		hr = _new(v0, v1, vr, args.This());
 
 		METHOD_OVER(3, 3);
 
@@ -149,7 +150,7 @@ namespace fibjs
 		ARG(int32_t, 1);
 		ARG(obj_ptr<Buffer_base>, 2);
 
-		hr = _new(v0, v1, v2, vr);
+		hr = _new(v0, v1, v2, vr, args.This());
 
 		METHOD_OVER(4, 4);
 
@@ -158,7 +159,7 @@ namespace fibjs
 		ARG(obj_ptr<Buffer_base>, 2);
 		ARG(obj_ptr<Buffer_base>, 3);
 
-		hr = _new(v0, v1, v2, v3, vr);
+		hr = _new(v0, v1, v2, v3, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

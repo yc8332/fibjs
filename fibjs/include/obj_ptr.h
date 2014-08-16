@@ -14,7 +14,7 @@
 namespace fibjs
 {
 
-extern int g_obj_refs;
+extern int32_t g_obj_refs;
 
 class obj_base
 {
@@ -49,18 +49,18 @@ public:
     }
 
 protected:
-    int internalRef()
+    int32_t internalRef()
     {
         return exlib::atom_inc(&refs_);
     }
 
-    int internalUnref()
+    int32_t internalUnref()
     {
         return exlib::atom_dec(&refs_);
     }
 
 private:
-    int refs_;
+    volatile int32_t refs_;
 };
 
 template<class T>
@@ -101,7 +101,7 @@ public:
         if (lp != NULL)
             lp->Ref();
 
-        return Attach(lp);
+        return _attach(lp);
     }
 
     template<class Q>
@@ -110,23 +110,23 @@ public:
         if (lp != NULL)
             lp->Ref();
 
-        return Attach(lp);
+        return _attach(lp);
     }
 
     T *operator=(const obj_ptr<T> &lp)
     {
-        return operator=(lp.p);
+        return operator=((T *)lp);
     }
 
     template<class Q>
     T *operator=(const obj_ptr<Q> &lp)
     {
-        return operator=(lp.p);
+        return operator=((Q *)lp);
     }
 
     operator T *() const
     {
-        return p;
+        return (T *)p;
     }
 
     T &operator*() const
@@ -136,7 +136,7 @@ public:
 
     T **operator&()
     {
-        return &p;
+        return (T **)&p;
     }
 
     bool operator!() const
@@ -146,41 +146,31 @@ public:
 
     bool operator==(T *pT) const
     {
-        return p == pT;
+        return (T *)p == pT;
     }
 
     T *operator->()
     {
-        return p;
+        return (T *)p;
     }
 
     void Release()
     {
-        T *pTemp = Detach();
-        if (pTemp)
-            pTemp->Unref();
+        _attach((T *)NULL);
     }
 
-    T *Attach(T *p2)
+private:
+    T *_attach(T *p2)
     {
-        T *p1 = p;
-        p = p2;
-
+        T *p1 = exlib::atom_xchg(&p, p2);
         if (p1)
             p1->Unref();
 
         return p2;
     }
 
-    T *Detach()
-    {
-        T *p1 = p;
-
-        p = NULL;
-        return p1;
-    }
-
-    T *p;
+private:
+    volatile T *p;
 };
 
 }

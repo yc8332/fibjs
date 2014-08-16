@@ -10,22 +10,9 @@ github 中有全部文档的源码和生成文档，为方便查阅，我在线�
 
 了解 fibjs 的并发: http://prj.baoz.cn/docs/fibjs/d2/de8/start_prog.html
 
-官方交流社区: http://baoz.me/#!/fibjs
+官方交流社区: http://baoz.me/fibjs
 
-## Install
-
-### on linux/freebsd/osx:
-	sudo sh installer.sh
-
-### on Windows(run as administrator):
-	installer
-
-## Test
-
-	cd test
-	js main.js
-
-----------------------------------
+ps: 请无视编译中出现的大量警告错误，那些基本上都是第三方代码库的警告，恕不消除了。
 
 ## Prerequisites (unix)
 
@@ -87,3 +74,18 @@ github 中有全部文档的源码和生成文档，为方便查阅，我在线�
 	        Developer Command Prompt for VS2013
 	        
 	build
+
+----------------------------------
+
+## Install
+
+### on linux/freebsd/osx:
+	sudo sh bin/(Darwin|Linux|FreeBSD)_Release/installer.sh
+
+### on Windows console (run as administrator):
+	bin\Windows_Release\installer.exe
+
+## Test
+
+	cd test
+	js main.js

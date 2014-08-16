@@ -2,6 +2,7 @@ var test = require("test");
 test.setup();
 
 var vm = require('vm');
+var os = require('os');
 
 describe("vm", function() {
 	var sbox;
@@ -35,6 +36,15 @@ describe("vm", function() {
 		var b = sbox.addScript("t2.js", "module.exports = {a : require('t1').a};");
 		assert.equal(100, b.a);
 		assert.equal(100, sbox.require("t2").a);
+	});
+
+	it("module", function() {
+		sbox = new vm.SandBox({
+			assert: assert
+		});
+
+		sbox.addScript("t1.js", "assert.equal(module.exports, exports);");
+		sbox.addScript("t2.js", "assert.equal(module.require, require);");
 	});
 
 	it("callback", function() {
@@ -87,9 +97,17 @@ describe("vm", function() {
 		assert.deepEqual(b, b1);
 	});
 
-	xit("disable global.repl", function() {
+	it("block global hacker", function() {
+		sbox = new vm.SandBox({});
 		assert.throws(function() {
-			repl.toString();
+			sbox.addScript("t1.js", "});(function(){");
+		});
+	});
+
+	it("block function return", function() {
+		sbox = new vm.SandBox({});
+		assert.throws(function() {
+			sbox.addScript("t1.js", "return 100;");
 		});
 	});
 
@@ -103,6 +121,54 @@ describe("vm", function() {
 		t1.func();
 	});
 
+	it("Garbage Collection", function() {
+		sbox = undefined;
+		GC();
+		var no1 = os.memoryUsage().nativeObjects;
+
+		sbox = new vm.SandBox({});
+		assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
+
+		var a = sbox.addScript("t1.js", "module.exports = {a : new Buffer()};");
+
+		GC();
+		assert.equal(no1 + 2, os.memoryUsage().nativeObjects);
+
+		sbox = undefined;
+
+		GC();
+		assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
+
+		a = undefined;
+
+		GC();
+		assert.equal(no1, os.memoryUsage().nativeObjects);
+	});
+
+	it("Garbage Collection 1", function() {
+		GC();
+		var no1 = os.memoryUsage().nativeObjects;
+
+		var a = {
+			b: new vm.SandBox({}).addScript('b.js', "exports.a = new Buffer()")
+		};
+		a = undefined;
+
+		GC();
+		assert.equal(no1, os.memoryUsage().nativeObjects);
+	});
+
+	it("Garbage Collection 2", function() {
+		GC();
+		var no1 = os.memoryUsage().nativeObjects;
+
+		new vm.SandBox({
+			rpc: require('rpc')
+		}).addScript('server.js', 'exports.a = require("rpc").json(require)');
+
+		GC();
+		assert.equal(no1, os.memoryUsage().nativeObjects);
+	});
 });
 
 //test.run(console.DEBUG);

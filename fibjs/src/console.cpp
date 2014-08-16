@@ -35,6 +35,8 @@ inline int64_t Ticks()
 #include <dlfcn.h>
 #include <sys/time.h>
 
+#include "utils.h" // for ARRAYSIZE()
+
 inline int64_t Ticks()
 {
     struct timeval tv;
@@ -48,25 +50,7 @@ inline int64_t Ticks()
 namespace fibjs
 {
 
-extern int32_t g_loglevel;
-
-result_t console_base::get_loglevel(int32_t &retVal)
-{
-    retVal = g_loglevel;
-    return 0;
-}
-
-result_t console_base::set_loglevel(int32_t newVal)
-{
-    g_loglevel = newVal;
-    return 0;
-}
-
-result_t console_base::get_colors(obj_ptr<TextColor_base> &retVal)
-{
-    retVal = logger::get_std_color();
-    return 0;
-}
+extern std_logger s_std;
 
 void _log(int32_t type, const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
@@ -85,6 +69,17 @@ result_t console_base::log(const char *fmt, const v8::FunctionCallbackInfo<v8::V
 result_t console_base::log(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     return log(NULL, args);
+}
+
+result_t console_base::debug(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    _log(_DEBUG, fmt, args);
+    return 0;
+}
+
+result_t console_base::debug(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    return debug(NULL, args);
 }
 
 result_t console_base::info(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
@@ -131,6 +126,28 @@ result_t console_base::error(const v8::FunctionCallbackInfo<v8::Value> &args)
     return error(NULL, args);
 }
 
+result_t console_base::crit(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    _log(_CRIT, fmt, args);
+    return 0;
+}
+
+result_t console_base::crit(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    return crit(NULL, args);
+}
+
+result_t console_base::alert(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    _log(_ALERT, fmt, args);
+    return 0;
+}
+
+result_t console_base::alert(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    return alert(NULL, args);
+}
+
 std::string json_format(v8::Local<v8::Value> obj);
 
 result_t console_base::dir(v8::Local<v8::Object> obj)
@@ -158,7 +175,7 @@ result_t console_base::timeEnd(const char *label)
     std::string strBuffer;
     char numStr[64];
 
-    sprintf(numStr, "%.3g", t / 1000.0);
+    sprintf(numStr, "%.10g", t / 1000.0);
 
     strBuffer.append(label);
     strBuffer.append(": ", 2);
@@ -201,7 +218,7 @@ result_t console_base::print(const char *fmt, const v8::FunctionCallbackInfo<v8:
 
     std::string str;
     util_base::format(fmt, args, str);
-    logger::std_out(str.c_str());
+    s_std.out(str.c_str());
 
     return 0;
 }
@@ -242,7 +259,20 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
 #ifdef MacOS
         void *handle = dlopen("libreadline.dylib", RTLD_LAZY);
 #else
-        void *handle = dlopen("libreadline.so", RTLD_LAZY);
+        const char *readline_dylib_names[] =
+        {
+            "libreadline.so.6",
+            "libreadline.so.5",
+            "libreadline.so"
+        };
+        const size_t readline_dylib_names_size = ARRAYSIZE(readline_dylib_names);
+        void *handle = 0;
+
+        for (size_t i = 0; i < readline_dylib_names_size; i++)
+        {
+            handle = dlopen(readline_dylib_names[i], RTLD_LAZY);
+            if (handle) break;
+        }
 #endif
 
         if (handle)
@@ -256,36 +286,35 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
     if (!ac)
     {
         flushLog();
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
 #ifndef _WIN32
     if (_readline && _add_history)
     {
-        char *line;
+        char *line = _readline(msg);
 
-        if ((line = _readline(msg)) != NULL)
+        if (!line)
+            return CHECK_ERROR(LastError());
+
+        if (*line)
         {
-            if (*line)
-            {
-                _add_history(line);
-                retVal = line;
-            }
-            free(line);
+            _add_history(line);
+            retVal = line;
         }
+        free(line);
     }
     else
 #endif
     {
-        char *line;
+        s_std.out(msg);
+        char *line = read_line();
 
-        logger::std_out(msg);
+        if (!line)
+            return CHECK_ERROR(LastError());
 
-        if ((line = read_line()) != NULL)
-        {
-            retVal = line;
-            free(line);
-        }
+        retVal = line;
+        free(line);
     }
 
     return 0;

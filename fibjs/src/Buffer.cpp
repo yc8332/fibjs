@@ -1,39 +1,63 @@
 #include "Buffer.h"
 #include "ifs/encoding.h"
+#include <string.h>
 
 namespace fibjs
 {
 
 result_t Buffer_base::_new(const char *str, const char *codec,
-                           obj_ptr<Buffer_base> &retVal)
+                           obj_ptr<Buffer_base> &retVal,
+                           v8::Local<v8::Object> This)
 {
     retVal = new Buffer();
     return retVal->write(str, codec);
 }
 
-result_t Buffer_base::_new(Buffer_base *data, obj_ptr<Buffer_base> &retVal)
+result_t Buffer_base::_new(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
+                           v8::Local<v8::Object> This)
 {
     retVal = new Buffer();
     return retVal->write(data);
 }
 
-result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base> &retVal)
+result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base> &retVal,
+                           v8::Local<v8::Object> This)
 {
     retVal = new Buffer();
     return retVal->resize(size);
 }
 
 result_t Buffer_base::_new(v8::Local<v8::Array> datas,
-                           obj_ptr<Buffer_base> &retVal)
+                           obj_ptr<Buffer_base> &retVal,
+                           v8::Local<v8::Object> This)
 {
     retVal = new Buffer();
     return retVal->write(datas);
 }
 
+result_t GetArgumentValue(v8::Local<v8::Value> v, obj_ptr<Buffer_base> &vr, bool bStrict)
+{
+    vr = Buffer_base::getInstance(v);
+    if (vr == NULL)
+    {
+        if (bStrict)
+            return CALL_E_INVALIDARG;
+
+        std::string str;
+        result_t hr = GetArgumentValue(v, str);
+        if (hr < 0)
+            return hr;
+
+        vr = new Buffer(str);
+    }
+
+    return 0;
+}
+
 result_t Buffer::_indexed_getter(uint32_t index, int32_t &retVal)
 {
     if (index >= m_data.length())
-        return CALL_E_BADINDEX;
+        return CHECK_ERROR(CALL_E_BADINDEX);
 
     retVal = (unsigned char) m_data[index];
     return 0;
@@ -42,10 +66,10 @@ result_t Buffer::_indexed_getter(uint32_t index, int32_t &retVal)
 result_t Buffer::_indexed_setter(uint32_t index, int32_t newVal)
 {
     if (index >= m_data.length())
-        return CALL_E_BADINDEX;
+        return CHECK_ERROR(CALL_E_BADINDEX);
 
     if (newVal < 0 || newVal > 255)
-        return CALL_E_OUTRANGE;
+        return CHECK_ERROR(CALL_E_OUTRANGE);
 
     m_data[index] = newVal;
     return 0;
@@ -60,7 +84,7 @@ result_t Buffer::get_length(int32_t &retVal)
 result_t Buffer::resize(int32_t sz)
 {
     if (sz < 0)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     extMemory(sz - (int) m_data.length());
     m_data.resize(sz);
@@ -84,12 +108,12 @@ result_t Buffer::write(v8::Local<v8::Array> datas)
             v8::Local<v8::Value> v = datas->Get(i);
             int32_t num;
 
-            hr = SafeGetValue(v, num, false);
+            hr = GetArgumentValue(v, num);
             if (hr < 0)
                 return hr;
 
             if (num < 0 || num > 256)
-                return CALL_E_OUTRANGE;
+                return CHECK_ERROR(CALL_E_OUTRANGE);
 
             str[i] = num;
         }
@@ -138,10 +162,228 @@ result_t Buffer::write(const char *str, const char *codec)
     return write(data);
 }
 
+result_t Buffer::readNumber(int32_t offset, char *buf, int32_t size, bool noAssert, bool le)
+{
+    int32_t sz = size;
+
+    if (offset + sz > (int32_t) m_data.length())
+    {
+        if (!noAssert)
+            return CHECK_ERROR(CALL_E_OUTRANGE);
+
+        sz = (int32_t) m_data.length() - offset;
+        if (sz <= 0)
+            return 0;
+    }
+
+    if (size == 1)
+    {
+        buf[0] = *(m_data.c_str() + offset);
+        return 0;
+    }
+
+    if (le)
+        memcpy(buf, m_data.c_str() + offset, sz);
+    else
+    {
+        int32_t i;
+        for (i = 0; i < sz; i ++)
+            buf[size - i - 1] = *(m_data.c_str() + offset + i);
+    }
+
+    return 0;
+}
+
+#define READ_NUMBER(t, le) \
+    t v = 0; \
+    result_t hr = readNumber(offset, (char *)&v, sizeof(v), noAssert, le); \
+    if (hr < 0)return hr; \
+    retVal = v; \
+    return 0;
+
+result_t Buffer::readUInt8(int32_t offset, bool noAssert, int32_t &retVal)
+{
+    READ_NUMBER(uint8_t, true);
+}
+
+result_t Buffer::readUInt16LE(int32_t offset, bool noAssert, int32_t &retVal)
+{
+    READ_NUMBER(uint16_t, true);
+}
+
+result_t Buffer::readUInt16BE(int32_t offset, bool noAssert, int32_t &retVal)
+{
+    READ_NUMBER(uint16_t, false);
+}
+
+result_t Buffer::readUInt32LE(int32_t offset, bool noAssert, int64_t &retVal)
+{
+    READ_NUMBER(uint32_t, true);
+}
+
+result_t Buffer::readUInt32BE(int32_t offset, bool noAssert, int64_t &retVal)
+{
+    READ_NUMBER(uint32_t, false);
+}
+
+result_t Buffer::readInt8(int32_t offset, bool noAssert, int32_t &retVal)
+{
+    READ_NUMBER(int8_t, true);
+}
+
+result_t Buffer::readInt16LE(int32_t offset, bool noAssert, int32_t &retVal)
+{
+    READ_NUMBER(int16_t, true);
+}
+
+result_t Buffer::readInt16BE(int32_t offset, bool noAssert, int32_t &retVal)
+{
+    READ_NUMBER(int16_t, false);
+}
+
+result_t Buffer::readInt32LE(int32_t offset, bool noAssert, int32_t &retVal)
+{
+    READ_NUMBER(int32_t, true);
+}
+
+result_t Buffer::readInt32BE(int32_t offset, bool noAssert, int32_t &retVal)
+{
+    READ_NUMBER(int32_t, false);
+}
+
+result_t Buffer::readFloatLE(int32_t offset, bool noAssert, double &retVal)
+{
+    READ_NUMBER(float, true);
+}
+
+result_t Buffer::readFloatBE(int32_t offset, bool noAssert, double &retVal)
+{
+    READ_NUMBER(float, false);
+}
+
+result_t Buffer::readDoubleLE(int32_t offset, bool noAssert, double &retVal)
+{
+    READ_NUMBER(double, true);
+}
+
+result_t Buffer::readDoubleBE(int32_t offset, bool noAssert, double &retVal)
+{
+    READ_NUMBER(double, false);
+}
+
+result_t Buffer::writeNumber(int32_t offset, const char *buf, int32_t size, bool noAssert, bool le)
+{
+    int32_t sz = size;
+
+    if (offset + sz > (int32_t) m_data.length())
+    {
+        if (!noAssert)
+            return CHECK_ERROR(CALL_E_OUTRANGE);
+
+        sz = (int32_t) m_data.length() - offset;
+        if (sz <= 0)
+            return 0;
+    }
+
+    if (size == 1)
+    {
+        m_data[offset] = buf[0];
+        return 0;
+    }
+
+    if (le)
+        memcpy(&m_data[offset], buf, sz);
+    else
+    {
+        int32_t i;
+        for (i = 0; i < sz; i ++)
+            m_data[offset + i] = buf[size - i - 1];
+    }
+
+    return 0;
+}
+
+#define WRITE_NUMBER(t, le) \
+    t v = (t)value; \
+    result_t hr = writeNumber(offset, (char *)&v, sizeof(v), noAssert, le); \
+    if (hr < 0)return hr; \
+    return 0;
+
+
+result_t Buffer::writeUInt8(int32_t value, int32_t offset, bool noAssert)
+{
+    WRITE_NUMBER(uint8_t, true);
+}
+
+result_t Buffer::writeUInt16LE(int32_t value, int32_t offset, bool noAssert)
+{
+    WRITE_NUMBER(uint16_t, true);
+}
+
+result_t Buffer::writeUInt16BE(int32_t value, int32_t offset, bool noAssert)
+{
+    WRITE_NUMBER(uint16_t, false);
+}
+
+result_t Buffer::writeUInt32LE(int64_t value, int32_t offset, bool noAssert)
+{
+    WRITE_NUMBER(uint32_t, true);
+}
+
+result_t Buffer::writeUInt32BE(int64_t value, int32_t offset, bool noAssert)
+{
+    WRITE_NUMBER(uint32_t, false);
+}
+
+result_t Buffer::writeInt8(int32_t value, int32_t offset, bool noAssert)
+{
+    WRITE_NUMBER(int8_t, true);
+}
+
+result_t Buffer::writeInt16LE(int32_t value, int32_t offset, bool noAssert)
+{
+    WRITE_NUMBER(int16_t, true);
+}
+
+result_t Buffer::writeInt16BE(int32_t value, int32_t offset, bool noAssert)
+{
+    WRITE_NUMBER(int16_t, false);
+}
+
+result_t Buffer::writeInt32LE(int32_t value, int32_t offset, bool noAssert)
+{
+    WRITE_NUMBER(int32_t, true);
+}
+
+result_t Buffer::writeInt32BE(int32_t value, int32_t offset, bool noAssert)
+{
+    WRITE_NUMBER(int32_t, false);
+}
+
+result_t Buffer::writeFloatLE(double value, int32_t offset, bool noAssert)
+{
+    WRITE_NUMBER(float, true);
+}
+
+result_t Buffer::writeFloatBE(double value, int32_t offset, bool noAssert)
+{
+    WRITE_NUMBER(float, false);
+}
+
+result_t Buffer::writeDoubleLE(double value, int32_t offset, bool noAssert)
+{
+    WRITE_NUMBER(double, true);
+}
+
+result_t Buffer::writeDoubleBE(double value, int32_t offset, bool noAssert)
+{
+    WRITE_NUMBER(double, false);
+}
+
 result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal)
 {
     if (start < 0)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (end < 0)
         end = (int32_t) m_data.length();

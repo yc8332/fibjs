@@ -11,7 +11,7 @@ namespace fibjs
 {
 
 result_t Stats_base::_new(v8::Local<v8::Array> keys,
-                          obj_ptr<Stats_base> &retVal)
+                          obj_ptr<Stats_base> &retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<Stats> pStats = new Stats();
     int n = keys->Length();
@@ -32,7 +32,8 @@ result_t Stats_base::_new(v8::Local<v8::Array> keys,
 }
 
 result_t Stats_base::_new(v8::Local<v8::Array> staticKeys,
-                          v8::Local<v8::Array> keys, obj_ptr<Stats_base> &retVal)
+                          v8::Local<v8::Array> keys, obj_ptr<Stats_base> &retVal,
+                          v8::Local<v8::Object> This)
 {
     obj_ptr<Stats> pStats = new Stats();
     int sn = staticKeys->Length();
@@ -84,7 +85,7 @@ result_t Stats::set_key(int n, v8::Local<v8::Value> key)
     v8::String::Utf8Value str(key);
     const char *p = *str;
     if (p == NULL)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     set_key(n, p);
 
@@ -107,7 +108,7 @@ result_t Stats::inc(const char *key)
     int i = find(key);
 
     if (i < 0)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     inc(i);
 
@@ -119,7 +120,7 @@ result_t Stats::dec(const char *key)
     int i = find(key);
 
     if (i < 0)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     dec(i);
 
@@ -131,7 +132,7 @@ result_t Stats::add(const char *key, int32_t value)
     int i = find(key);
 
     if (i < 0)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     add(i, value);
 

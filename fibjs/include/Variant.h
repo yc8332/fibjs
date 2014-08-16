@@ -232,6 +232,14 @@ public:
         return operator=(v8::Local<v8::Value>::Cast(v));
     }
 
+    Variant &setNull()
+    {
+        clear();
+
+        set_type(VT_Null);
+        return *this;
+    }
+
     Type type() const
     {
         return (Type) (m_type & VT_Type);
@@ -274,6 +282,13 @@ public:
 
     operator v8::Local<v8::Value>() const;
 
+    operator int32_t() const
+    {
+        if (type() != VT_Integer)
+            return 0;
+        return m_Val.intVal;
+    }
+
     void parseNumber(const char *str, int len = -1);
     void parseDate(const char *str, int len = -1)
     {
@@ -282,6 +297,13 @@ public:
     }
 
     bool toString(std::string &retVal);
+
+    obj_base *object() const
+    {
+        if (type() != VT_Object)
+            return NULL;
+        return m_Val.objVal;
+    }
 
 private:
     Variant &operator=(obj_base *v)

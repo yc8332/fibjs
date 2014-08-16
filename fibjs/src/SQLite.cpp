@@ -20,8 +20,8 @@ namespace fibjs
 result_t db_base::openSQLite(const char *connString,
                              obj_ptr<SQLite_base> &retVal, exlib::AsyncEvent *ac)
 {
-    if (!ac)
-        return CALL_E_NOSYNC;
+    if (switchToAsync(ac))
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
 
@@ -29,7 +29,7 @@ result_t db_base::openSQLite(const char *connString,
         connString += 7;
 
     obj_ptr<SQLite> db = new SQLite();
-    hr = db->open(connString, ac);
+    hr = db->open(connString);
     if (hr < 0)
         return hr;
 
@@ -38,14 +38,12 @@ result_t db_base::openSQLite(const char *connString,
     return 0;
 }
 
-result_t SQLite::open(const char *file, exlib::AsyncEvent *ac)
+result_t SQLite::open(const char *file)
 {
-    if (!ac)
-        return CALL_E_NOSYNC;
-
+    sqlite3_enable_shared_cache(1);
     if (sqlite3_open_v2(file, &m_db, SQLITE_OPEN_FLAGS, 0))
     {
-        result_t hr = Runtime::setError(sqlite3_errmsg(m_db));
+        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_db)));
         sqlite3_close(m_db);
         m_db = NULL;
         return hr;
@@ -58,11 +56,11 @@ result_t SQLite::open(const char *file, exlib::AsyncEvent *ac)
 
 result_t SQLite::close(exlib::AsyncEvent *ac)
 {
-    if (!ac)
-        return CALL_E_NOSYNC;
-
     if (!m_db)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (switchToAsync(ac))
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     sqlite3_close(m_db);
     m_db = NULL;
@@ -72,29 +70,38 @@ result_t SQLite::close(exlib::AsyncEvent *ac)
 
 result_t SQLite::begin(exlib::AsyncEvent *ac)
 {
-    if (!ac)
-        return CALL_E_NOSYNC;
+    if (!m_db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (switchToAsync(ac))
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<DBResult_base> retVal;
-    return execute("BEGIN", 5, retVal, ac);
+    return execute("BEGIN", 5, retVal);
 }
 
 result_t SQLite::commit(exlib::AsyncEvent *ac)
 {
-    if (!ac)
-        return CALL_E_NOSYNC;
+    if (!m_db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (switchToAsync(ac))
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<DBResult_base> retVal;
-    return execute("COMMIT", 6, retVal, ac);
+    return execute("COMMIT", 6, retVal);
 }
 
 result_t SQLite::rollback(exlib::AsyncEvent *ac)
 {
-    if (!ac)
-        return CALL_E_NOSYNC;
+    if (!m_db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (switchToAsync(ac))
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<DBResult_base> retVal;
-    return execute("ROLLBACK", 8, retVal, ac);
+    return execute("ROLLBACK", 8, retVal);
 }
 
 int sqlite3_step_sleep(sqlite3_stmt *stmt, int ms)
@@ -113,27 +120,24 @@ int sqlite3_step_sleep(sqlite3_stmt *stmt, int ms)
 #define SQLITE_SLEEP_TIME   10000
 
 result_t SQLite::execute(const char *sql, int sLen,
-                         obj_ptr<DBResult_base> &retVal, exlib::AsyncEvent *ac)
+                         obj_ptr<DBResult_base> &retVal)
 {
-    if (!ac)
-        return CALL_E_NOSYNC;
-
     if (!m_db)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     sqlite3_stmt *stmt = 0;
     const char *pStr1;
 
     if (sqlite3_prepare_v2(m_db, sql, sLen, &stmt, &pStr1))
     {
-        result_t hr = Runtime::setError(sqlite3_errmsg(m_db));
+        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_db)));
         if (stmt)
             sqlite3_finalize(stmt);
         return hr;
     }
 
     if (!stmt)
-        return Runtime::setError("Query was empty");
+        return CHECK_ERROR(Runtime::setError("Query was empty"));
 
     int columns = sqlite3_column_count(stmt);
     obj_ptr<DBResult> res;
@@ -218,7 +222,7 @@ result_t SQLite::execute(const char *sql, int sLen,
             else
             {
                 sqlite3_finalize(stmt);
-                return Runtime::setError(sqlite3_errmsg(m_db));
+                return CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_db)));
             }
         }
     }
@@ -231,7 +235,7 @@ result_t SQLite::execute(const char *sql, int sLen,
         else
         {
             sqlite3_finalize(stmt);
-            return Runtime::setError(sqlite3_errmsg(m_db));
+            return CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_db)));
         }
     }
 
@@ -244,10 +248,13 @@ result_t SQLite::execute(const char *sql, int sLen,
 
 result_t SQLite::execute(const char *sql, obj_ptr<DBResult_base> &retVal, exlib::AsyncEvent *ac)
 {
-    if (!ac)
-        return CALL_E_NOSYNC;
+    if (!m_db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return execute(sql, (int) qstrlen(sql), retVal, ac);
+    if (switchToAsync(ac))
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return execute(sql, (int) qstrlen(sql), retVal);
 }
 
 result_t SQLite::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
@@ -272,7 +279,7 @@ result_t SQLite::format(const char *sql, const v8::FunctionCallbackInfo<v8::Valu
 result_t SQLite::get_fileName(std::string &retVal)
 {
     if (!m_db)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = m_file;
     return 0;
@@ -281,7 +288,7 @@ result_t SQLite::get_fileName(std::string &retVal)
 result_t SQLite::get_timeout(int32_t &retVal)
 {
     if (!m_db)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = m_nCmdTimeout;
     return 0;
@@ -290,7 +297,7 @@ result_t SQLite::get_timeout(int32_t &retVal)
 result_t SQLite::set_timeout(int32_t newVal)
 {
     if (!m_db)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     m_nCmdTimeout = newVal;
     sqlite3_busy_timeout(m_db, m_nCmdTimeout);
@@ -299,11 +306,11 @@ result_t SQLite::set_timeout(int32_t newVal)
 
 result_t SQLite::backup(const char *fileName, exlib::AsyncEvent *ac)
 {
-    if (!ac)
-        return CALL_E_NOSYNC;
-
     if (!m_db)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     int rc;
     struct sqlite3 *db2 = NULL;
@@ -311,7 +318,7 @@ result_t SQLite::backup(const char *fileName, exlib::AsyncEvent *ac)
 
     if (sqlite3_open_v2(fileName, &db2, SQLITE_OPEN_FLAGS, 0))
     {
-        result_t hr = Runtime::setError(sqlite3_errmsg(db2));
+        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(db2)));
         sqlite3_close(m_db);
         return hr;
     }
@@ -331,7 +338,7 @@ result_t SQLite::backup(const char *fileName, exlib::AsyncEvent *ac)
     }
     else
     {
-        result_t hr = Runtime::setError(sqlite3_errmsg(db2));
+        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(db2)));
         sqlite3_close(m_db);
         return hr;
     }

@@ -10,14 +10,15 @@
 namespace fibjs
 {
 
-result_t Condition_base::_new(obj_ptr<Condition_base> &retVal)
+result_t Condition_base::_new(obj_ptr<Condition_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new Condition();
 
     return 0;
 }
 
-result_t Condition_base::_new(Lock_base *lock, obj_ptr<Condition_base> &retVal)
+result_t Condition_base::_new(Lock_base *lock, obj_ptr<Condition_base> &retVal,
+                              v8::Local<v8::Object> This)
 {
     retVal = new Condition(lock);
 
@@ -37,7 +38,7 @@ result_t Condition::release()
 result_t Condition::wait()
 {
     if (!m_lockCond->m_lock.owned())
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     v8::Unlocker unlocker(isolate);
     m_cond.wait(m_lockCond->m_lock);

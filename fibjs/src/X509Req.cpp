@@ -18,14 +18,15 @@
 namespace fibjs
 {
 
-result_t X509Req_base::_new(obj_ptr<X509Req_base> &retVal)
+result_t X509Req_base::_new(obj_ptr<X509Req_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new X509Req();
     return 0;
 }
 
 result_t X509Req_base::_new(const char *subject, PKey_base *key,
-                            int32_t hash, obj_ptr<X509Req_base> &retVal)
+                            int32_t hash, obj_ptr<X509Req_base> &retVal,
+                            v8::Local<v8::Object> This)
 {
     obj_ptr<X509Req> req = new X509Req();
     result_t hr;
@@ -65,7 +66,7 @@ result_t X509Req::create(const char *subject, PKey_base *key, int32_t hash)
     x509write_csr_init(&csr);
 
     if (hash < POLARSSL_MD_MD2 || hash > POLARSSL_MD_RIPEMD160)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     x509write_csr_set_md_alg(&csr, (md_type_t)hash);
     x509write_csr_set_subject_name(&csr, subject);
@@ -80,11 +81,11 @@ result_t X509Req::create(const char *subject, PKey_base *key, int32_t hash)
                             ctr_drbg_random, &g_ssl.ctr_drbg);
     x509write_csr_free(&csr);
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     ret = x509_csr_parse(&m_csr, (const unsigned char *)buf.c_str(), qstrlen(buf.c_str()));
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     return 0;
 }
@@ -101,7 +102,7 @@ result_t X509Req::load(Buffer_base *derReq)
     ret = x509_csr_parse(&m_csr, (const unsigned char *)csr.c_str(),
                          csr.length());
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     return 0;
 }
@@ -115,7 +116,7 @@ result_t X509Req::load(const char *pemReq)
     ret = x509_csr_parse(&m_csr, (const unsigned char *)pemReq,
                          qstrlen(pemReq));
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     return 0;
 }
@@ -135,7 +136,7 @@ result_t X509Req::loadFile(const char *filename)
     ret = x509_csr_parse(&m_csr, (const unsigned char *)data.c_str(),
                          data.length());
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     std::string buf;
     buf.resize(8192);
@@ -149,7 +150,7 @@ result_t X509Req::loadFile(const char *filename)
 result_t X509Req::exportPem(std::string &retVal)
 {
     if (m_csr.raw.len == 0)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     std::string buf;
     size_t olen;
@@ -160,7 +161,7 @@ result_t X509Req::exportPem(std::string &retVal)
                            m_csr.raw.p, m_csr.raw.len,
                            (unsigned char *)&buf[0], buf.length(), &olen);
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     buf.resize(olen - 1);
     retVal = buf;
@@ -171,7 +172,7 @@ result_t X509Req::exportPem(std::string &retVal)
 result_t X509Req::exportDer(obj_ptr<Buffer_base> &retVal)
 {
     if (m_csr.raw.len == 0)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = new Buffer(m_csr.raw.p, m_csr.raw.len);
 
@@ -193,7 +194,7 @@ result_t X509Req::parseString(v8::Local<v8::Value> v, const X509Cert::_name *pNa
         const char *ptr = *str;
 
         if (!ptr)
-            return _ssl::setError(POLARSSL_ERR_MPI_BAD_INPUT_DATA);
+            return CHECK_ERROR(_ssl::setError(POLARSSL_ERR_MPI_BAD_INPUT_DATA));
 
         _parser p(ptr, (int)qstrlen(ptr));
 
@@ -222,7 +223,7 @@ result_t X509Req::parseString(v8::Local<v8::Value> v, const X509Cert::_name *pNa
                 }
 
                 if (!pItem->id)
-                    return CALL_E_INVALIDARG;
+                    return CHECK_ERROR(CALL_E_INVALIDARG);
             }
         }
     }
@@ -242,7 +243,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
         return hr;
 
     if (!priv)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     int ret;
     std::string subject;
@@ -258,16 +259,11 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
 
         x509write_crt_init(&m_crt);
 
-        v = opts->Get(v8::String::NewFromUtf8(isolate, "hash",
-                                              v8::String::kNormalString, 4));
-        if (!IsEmpty(v))
-        {
-            hr = SafeGetValue(v, hash, false);
-            if (hr < 0)
-                goto exit;
-        }
-        else
+        hr = GetConfigValue(opts, "hash", hash);
+        if (hr == CALL_E_PARAMNOTOPTIONAL)
             hash = m_csr.sig_md;
+        else if (hr < 0)
+            goto exit;
 
         if (hash < POLARSSL_MD_MD2 || hash > POLARSSL_MD_RIPEMD160)
         {
@@ -285,7 +281,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
 
             if (!*str)
             {
-                hr = _ssl::setError(POLARSSL_ERR_MPI_BAD_INPUT_DATA);
+                hr = CHECK_ERROR(_ssl::setError(POLARSSL_ERR_MPI_BAD_INPUT_DATA));
                 goto exit;
             }
 
@@ -294,7 +290,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
             if (ret != 0)
             {
                 mpi_free(&serial);
-                hr = _ssl::setError(ret);
+                hr = CHECK_ERROR(_ssl::setError(ret));
                 goto exit;
             }
         }
@@ -308,7 +304,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
         if (ret != 0)
         {
             mpi_free(&serial);
-            hr = _ssl::setError(ret);
+            hr = CHECK_ERROR(_ssl::setError(ret));
             goto exit;
         }
 
@@ -317,60 +313,40 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
         date_t d1, d2;
         std::string s1, s2;
 
-        v = opts->Get(v8::String::NewFromUtf8(isolate, "notBefore",
-                                              v8::String::kNormalString, 9));
-        if (!IsEmpty(v))
-        {
-            hr = SafeGetValue(v, d1, false);
-            if (hr < 0)
-                goto exit;
-        }
-        else
+        hr = GetConfigValue(opts, "notBefore", d1);
+        if (hr == CALL_E_PARAMNOTOPTIONAL)
             d1.now();
+        else if (hr < 0)
+            goto exit;
         d1.toX509String(s1);
 
 
-        v = opts->Get(v8::String::NewFromUtf8(isolate, "notAfter",
-                                              v8::String::kNormalString, 8));
-        if (!IsEmpty(v))
-        {
-            hr = SafeGetValue(v, d2, false);
-            if (hr < 0)
-                goto exit;
-        }
-        else
+        hr = GetConfigValue(opts, "notAfter", d2);
+        if (hr == CALL_E_PARAMNOTOPTIONAL)
         {
             d2 = d1;
             d2.add(1, date_t::_YEAR);
         }
+        else if (hr < 0)
+            goto exit;
         d2.toX509String(s2);
 
         ret = x509write_crt_set_validity(&m_crt, s1.c_str(), s2.c_str());
         if (ret != 0)
         {
-            hr = _ssl::setError(ret);
+            hr = CHECK_ERROR(_ssl::setError(ret));
             goto exit;
         }
 
         bool is_ca = false;
-        v = opts->Get(v8::String::NewFromUtf8(isolate, "ca",
-                                              v8::String::kNormalString, 2));
-        if (!IsEmpty(v))
-        {
-            hr = SafeGetValue(v, is_ca, false);
-            if (hr < 0)
-                goto exit;
-        }
+        hr = GetConfigValue(opts, "ca", is_ca);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            goto exit;
 
         int32_t pathlen = -1;
-        v = opts->Get(v8::String::NewFromUtf8(isolate, "pathlen",
-                                              v8::String::kNormalString, 7));
-        if (!IsEmpty(v))
-        {
-            hr = SafeGetValue(v, pathlen, false);
-            if (hr < 0)
-                goto exit;
-        }
+        hr = GetConfigValue(opts, "pathlen", pathlen);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            goto exit;
 
         if (pathlen < -1 || pathlen > 127)
         {
@@ -381,7 +357,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
         ret = x509write_crt_set_basic_constraints(&m_crt, is_ca ? 1 : 0, pathlen);
         if (ret != 0)
         {
-            hr = _ssl::setError(ret);
+            hr = CHECK_ERROR(_ssl::setError(ret));
             goto exit;
         }
 
@@ -397,7 +373,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
             ret = x509write_crt_set_key_usage(&m_crt, key_usage);
             if (ret != 0)
             {
-                hr = _ssl::setError(ret);
+                hr = CHECK_ERROR(_ssl::setError(ret));
                 goto exit;
             }
         }
@@ -414,12 +390,12 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
             ret = x509write_crt_set_ns_cert_type(&m_crt, cert_type);
             if (ret != 0)
             {
-                hr = _ssl::setError(ret);
+                hr = CHECK_ERROR(_ssl::setError(ret));
                 goto exit;
             }
         }
 
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
     pk = &((PKey *)key)->m_key;
@@ -434,28 +410,28 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
     ret = x509write_crt_set_subject_name(&m_crt, subject.c_str());
     if (ret != 0)
     {
-        hr = _ssl::setError(ret);
+        hr = CHECK_ERROR(_ssl::setError(ret));
         goto exit;
     }
 
     ret = x509write_crt_set_issuer_name(&m_crt, issuer);
     if (ret != 0)
     {
-        hr = _ssl::setError(ret);
+        hr = CHECK_ERROR(_ssl::setError(ret));
         goto exit;
     }
 
     ret = x509write_crt_set_subject_key_identifier(&m_crt);
     if (ret != 0)
     {
-        hr = _ssl::setError(ret);
+        hr = CHECK_ERROR(_ssl::setError(ret));
         goto exit;
     }
 
     ret = x509write_crt_set_authority_key_identifier(&m_crt);
     if (ret != 0)
     {
-        hr = _ssl::setError(ret);
+        hr = CHECK_ERROR(_ssl::setError(ret));
         goto exit;
     }
 
@@ -465,7 +441,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
                             ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret < 0)
     {
-        hr = _ssl::setError(ret);
+        hr = CHECK_ERROR(_ssl::setError(ret));
         goto exit;
     }
 
@@ -491,7 +467,7 @@ result_t X509Req::get_subject(std::string &retVal)
 
     ret = x509_dn_gets(&buf[0], buf.length(), &m_csr.subject);
     if (ret < 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     buf.resize(ret);
     retVal = buf;

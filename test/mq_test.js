@@ -8,6 +8,8 @@ var io = require('io');
 var m = new mq.Message();
 var v = new Buffer('abcd');
 
+var n;
+
 function hdlr1(v) {
 	n = n | 1;
 }
@@ -99,7 +101,7 @@ describe("mq", function() {
 		};
 
 		it("invoke path", function() {
-			for (t in ot) {
+			for (var t in ot) {
 				n = 0;
 				m.value = t;
 				o.invoke(m);
@@ -332,13 +334,25 @@ describe("mq", function() {
 			return aw;
 		}), m);
 		assert.equal(n, 200);
+
+		n = 300;
+		mq.invoke(mq.jsHandler(function(r) {
+			var aw = mq.await();
+
+			assert.equal(n, 300);
+			n = 400;
+			aw.end();
+
+			return aw;
+		}), m);
+		assert.equal(n, 400);
 	});
 
 	it("PacketHandler", function() {
 		var s = new net.TcpServer(8884, new mq.PacketHandler(function(r) {
 			var d = r.body.readAll();
 			r.clear();
-			r.body.write(new Buffer(d.toString().toUpperCase()));
+			r.response.body.write(d.toString().toUpperCase());
 		}));
 
 		s.asyncRun();

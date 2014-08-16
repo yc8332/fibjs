@@ -111,6 +111,17 @@ public:
     exlib::Locker m_lock;
 
 public:
+    static bool switchToAsync(exlib::AsyncEvent *ac)
+    {
+        if (m_singleUserMode)
+            return false;
+
+        return !ac;
+    }
+
+    static bool m_singleUserMode;
+
+public:
     class asyncRelease: public asyncCallBack
     {
     public:
@@ -133,7 +144,7 @@ private:
 private:
     static void WeakCallback(const v8::WeakCallbackData<v8::Object, object_base> &data)
     {
-        data.GetParameter()->dispose();
+        data.GetParameter()->internalDispose();
     }
 
 public:
@@ -141,6 +152,8 @@ public:
     {
         if (handle_.IsEmpty())
         {
+            if (o.IsEmpty())
+                o = Classinfo().CreateInstance();
             handle_.Reset(isolate, o);
             o->SetAlignedPointerInInternalField(0, this);
 
@@ -228,9 +241,7 @@ private:
     int m_nExtMemory;
     int m_nExtMemoryDelay;
 
-public:
-    // object_base
-    virtual result_t dispose()
+    result_t internalDispose()
     {
         if (!handle_.IsEmpty())
         {
@@ -247,6 +258,13 @@ public:
         }
 
         return 0;
+    }
+
+public:
+    // object_base
+    virtual result_t dispose()
+    {
+        return internalDispose();
     }
 
     virtual result_t toString(std::string &retVal)

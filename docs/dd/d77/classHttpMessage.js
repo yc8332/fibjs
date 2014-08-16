@@ -8,6 +8,7 @@ var classHttpMessage =
     [ "setHeader", "dd/d77/classHttpMessage.html#ac5626cfdbeb975e16ab3b127b76b1864", null ],
     [ "setHeader", "dd/d77/classHttpMessage.html#a080e5427207dcae84985d7085f54761c", null ],
     [ "removeHeader", "dd/d77/classHttpMessage.html#a527c0eba05ae52d3b2c9a2cf284277bd", null ],
+    [ "write", "dd/d77/classHttpMessage.html#a42fdd87346cb529e34e1e12e41afe2bc", null ],
     [ "clear", "dd/d77/classHttpMessage.html#a8ed24470ab5214955c70bb108209f9d4", null ],
     [ "sendTo", "dd/d77/classHttpMessage.html#a8c456b35a88228f954974592e9b5c5ab", null ],
     [ "readFrom", "dd/d77/classHttpMessage.html#ad4a8dc64a0be31e60e98c671bc630203", null ],
@@ -25,5 +26,6 @@ var classHttpMessage =
     [ "result", "dd/d77/classHttpMessage.html#aff37dc807536324e1b576ffec75770b0", null ],
     [ "body", "dd/d77/classHttpMessage.html#a102e4b9b4a800bf24fd01a66df49b489", null ],
     [ "length", "dd/d77/classHttpMessage.html#a26e77ec52998a43c1b97fd4b7229283c", null ],
-    [ "stream", "dd/d77/classHttpMessage.html#a9b19686184c56df8c1fca416751a71b3", null ]
+    [ "stream", "dd/d77/classHttpMessage.html#a9b19686184c56df8c1fca416751a71b3", null ],
+    [ "response", "dd/d77/classHttpMessage.html#a78167fa1a78f782d15ea7122333eb53d", null ]
 ];

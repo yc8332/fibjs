@@ -78,6 +78,14 @@ result_t Message::_msg::set_body(SeekableStream_base *newVal)
     return 0;
 }
 
+result_t Message::_msg::write(Buffer_base *data, exlib::AsyncEvent *ac)
+{
+    if (m_body == NULL)
+        m_body = new MemoryStream();
+
+    return m_body->write(data, ac);
+}
+
 result_t Message::_msg::get_length(int64_t &retVal)
 {
     if (m_body == NULL)
@@ -88,7 +96,7 @@ result_t Message::_msg::get_length(int64_t &retVal)
     return m_body->size(retVal);
 }
 
-result_t Message_base::_new(obj_ptr<Message_base> &retVal)
+result_t Message_base::_new(obj_ptr<Message_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new Message();
     return 0;
@@ -134,6 +142,11 @@ result_t Message::set_body(SeekableStream_base *newVal)
     return m_message.set_body(newVal);
 }
 
+result_t Message::write(Buffer_base *data, exlib::AsyncEvent *ac)
+{
+    return m_message.write(data, ac);
+}
+
 result_t Message::get_length(int64_t &retVal)
 {
     return m_message.get_length(retVal);
@@ -147,17 +160,29 @@ result_t Message::clear()
 
 result_t Message::sendTo(Stream_base *stm, exlib::AsyncEvent *ac)
 {
-    return CALL_E_INVALID_CALL;
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
 result_t Message::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
 {
-    return CALL_E_INVALID_CALL;
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
 result_t Message::get_stream(obj_ptr<Stream_base> &retVal)
 {
-    return CALL_E_INVALID_CALL;
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
+result_t Message::get_response(obj_ptr<Message_base> &retVal)
+{
+    if (m_bRep)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (!m_response)
+        m_response = new Message(true);
+
+    retVal = m_response;
+    return 0;
 }
 
 } /* namespace fibjs */

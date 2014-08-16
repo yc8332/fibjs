@@ -13,13 +13,15 @@ namespace fibjs
 {
 
 result_t HttpsServer_base::_new(v8::Local<v8::Array> certs, int32_t port,
-                                v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base> &retVal)
+                                v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base> &retVal,
+                                v8::Local<v8::Object> This)
 {
     return _new(certs, "", port, hdlr, retVal);
 }
 
 result_t HttpsServer_base::_new(v8::Local<v8::Array> certs, const char *addr, int32_t port,
-                                v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base> &retVal)
+                                v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base> &retVal,
+                                v8::Local<v8::Object> This)
 {
     obj_ptr<HttpsServer> svr = new HttpsServer();
     result_t hr = svr->create(certs, addr, port, hdlr);
@@ -32,13 +34,15 @@ result_t HttpsServer_base::_new(v8::Local<v8::Array> certs, const char *addr, in
 }
 
 result_t HttpsServer_base::_new(X509Cert_base *crt, PKey_base *key, int32_t port,
-                                v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base> &retVal)
+                                v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base> &retVal,
+                                v8::Local<v8::Object> This)
 {
     return _new(crt, key, "", port, hdlr, retVal);
 }
 
 result_t HttpsServer_base::_new(X509Cert_base *crt, PKey_base *key, const char *addr, int32_t port,
-                                v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base> &retVal)
+                                v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base> &retVal,
+                                v8::Local<v8::Object> This)
 {
     obj_ptr<HttpsServer> svr = new HttpsServer();
     result_t hr = svr->create(crt, key, addr, port, hdlr);
@@ -54,13 +58,9 @@ result_t HttpsServer::create(X509Cert_base *crt, PKey_base *key, const char *add
                              v8::Local<v8::Value> hdlr)
 {
     result_t hr;
-    obj_ptr<Handler_base> hdlr1;
-
-    hr = JSHandler::New(hdlr, hdlr1);
+    hr = HttpHandler_base::_new(hdlr, m_handler);
     if (hr < 0)
         return hr;
-
-    m_handler = new HttpHandler(hdlr1);
 
     hr = m_handler->ValueOf(hdlr);
     if (hr < 0)
@@ -77,13 +77,9 @@ result_t HttpsServer::create(v8::Local<v8::Array> certs, const char *addr, int32
                              v8::Local<v8::Value> hdlr)
 {
     result_t hr;
-    obj_ptr<Handler_base> hdlr1;
-
-    hr = JSHandler::New(hdlr, hdlr1);
+    hr = HttpHandler_base::_new(hdlr, m_handler);
     if (hr < 0)
         return hr;
-
-    m_handler = new HttpHandler(hdlr1);
 
     hr = m_handler->ValueOf(hdlr);
     if (hr < 0)

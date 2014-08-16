@@ -13,7 +13,7 @@
 namespace fibjs
 {
 
-result_t HttpRequest_base::_new(obj_ptr<HttpRequest_base> &retVal)
+result_t HttpRequest_base::_new(obj_ptr<HttpRequest_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new HttpRequest();
     return 0;
@@ -42,6 +42,11 @@ result_t HttpRequest::get_body(obj_ptr<SeekableStream_base> &retVal)
 result_t HttpRequest::set_body(SeekableStream_base *newVal)
 {
     return m_message.set_body(newVal);
+}
+
+result_t HttpRequest::write(Buffer_base *data, exlib::AsyncEvent *ac)
+{
+    return m_message.write(data, ac);
 }
 
 result_t HttpRequest::get_length(int64_t &retVal)
@@ -156,7 +161,8 @@ result_t HttpRequest::clear()
     m_address.assign("/", 1);
     m_queryString.clear();
 
-    m_response->clear();
+    if (m_response)
+        m_response->clear();
 
     m_cookie.Release();
     m_query.Release();
@@ -168,7 +174,7 @@ result_t HttpRequest::clear()
 result_t HttpRequest::sendTo(Stream_base *stm, exlib::AsyncEvent *ac)
 {
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     std::string strCommand = m_method;
     std::string strProtocol;
@@ -213,18 +219,22 @@ result_t HttpRequest::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
         static int command(asyncState *pState, int n)
         {
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
+
+            if (n == CALL_RETURN_NULL)
+                return pThis->done(CALL_RETURN_NULL);
+
             _parser p(pThis->m_strLine);
             result_t hr;
 
             if (!p.getWord(pThis->m_pThis->m_method))
-                return Runtime::setError("bad method.");
+                return CHECK_ERROR(Runtime::setError("HttpRequest: bad method."));
 
             p.skipSpace();
 
             std::string &addr = pThis->m_pThis->m_address;
 
             if (!p.getWord(addr, '?'))
-                return Runtime::setError("bad address.");
+                return CHECK_ERROR(Runtime::setError("HttpRequest: bad address."));
 
             if (!qstricmp(addr.c_str(), "http://", 7))
             {
@@ -241,7 +251,7 @@ result_t HttpRequest::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
             p.skipSpace();
 
             if (p.end())
-                return Runtime::setError("bad protocol.");
+                return CHECK_ERROR(Runtime::setError("HttpRequest: bad protocol version."));
 
             hr = pThis->m_pThis->set_protocol(p.now());
             if (hr < 0)
@@ -258,7 +268,7 @@ result_t HttpRequest::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
     };
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncReadFrom(this, stm, ac))->post(0);
 }
@@ -304,8 +314,11 @@ result_t HttpRequest::set_queryString(const char *newVal)
     return 0;
 }
 
-result_t HttpRequest::get_response(obj_ptr<HttpResponse_base> &retVal)
+result_t HttpRequest::get_response(obj_ptr<Message_base> &retVal)
 {
+    if (!m_response)
+        m_response = new HttpResponse();
+
     retVal = m_response;
     return 0;
 }
@@ -404,7 +417,7 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base> &retVal)
             Variant v;
 
             if (firstHeader("Content-Type", v) == CALL_RETURN_NULL)
-                return Runtime::setError("unknown form format.");
+                return CHECK_ERROR(Runtime::setError("HttpRequest: Content-Type is missing."));
 
             strType = v.string();
 
@@ -412,7 +425,7 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base> &retVal)
                 bUpload = true;
             else if (qstricmp(strType.c_str(),
                               "application/x-www-form-urlencoded", 33))
-                return Runtime::setError("unknown form format.");
+                return CHECK_ERROR(Runtime::setError("HttpRequest: unknown form format: " + strType));
 
             obj_ptr<Buffer_base> buf;
             obj_ptr<SeekableStream_base> _body;

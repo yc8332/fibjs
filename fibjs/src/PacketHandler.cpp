@@ -10,6 +10,7 @@
 #include "PacketMessage.h"
 #include "BufferedStream.h"
 #include "JSHandler.h"
+#include "ifs/console.h"
 
 namespace fibjs
 {
@@ -29,22 +30,34 @@ enum
 };
 
 result_t PacketHandler_base::_new(v8::Local<v8::Value> hdlr,
-                                  obj_ptr<PacketHandler_base> &retVal)
+                                  obj_ptr<PacketHandler_base> &retVal,
+                                  v8::Local<v8::Object> This)
 {
     obj_ptr<Handler_base> hdlr1;
     result_t hr = JSHandler::New(hdlr, hdlr1);
     if (hr < 0)
         return hr;
 
-    retVal = new PacketHandler(hdlr1);
+    obj_ptr<PacketHandler> pk_hdlr = new PacketHandler();
+    pk_hdlr->wrap(This);
+    pk_hdlr->setHandler(hdlr1);
+
+    retVal = pk_hdlr;
+
     return 0;
 }
 
-PacketHandler::PacketHandler(Handler_base *hdlr) :
-    m_hdlr(hdlr), m_maxSize(67108864)
+PacketHandler::PacketHandler() :
+    m_maxSize(67108864)
 {
     m_stats = new Stats();
     m_stats->init(s_staticCounter, 2, s_Counter, 3);
+}
+
+void PacketHandler::setHandler(Handler_base *hdlr)
+{
+    wrap()->SetHiddenValue(v8::String::NewFromUtf8(isolate, "handler"), hdlr->wrap());
+    m_hdlr = hdlr;
 }
 
 result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
@@ -58,6 +71,7 @@ result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         {
             m_stmBuffered = new BufferedStream(stm);
             m_msg = new PacketMessage(pThis->m_maxSize);
+            m_msg->get_response(m_rep);
 
             set(read);
         }
@@ -75,6 +89,9 @@ result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
+            if (n == CALL_RETURN_NULL)
+                return pThis->done(CALL_RETURN_NULL);
+
             pThis->m_pThis->m_stats->inc(PACKET_TOTAL);
             pThis->m_pThis->m_stats->inc(PACKET_REQUEST);
             pThis->m_pThis->m_stats->inc(PACKET_PENDDING);
@@ -88,7 +105,7 @@ result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
             pThis->set(end);
-            return pThis->m_msg->sendTo(pThis->m_stm, pThis);
+            return pThis->m_rep->sendTo(pThis->m_stm, pThis);
         }
 
         static int end(asyncState *pState, int n)
@@ -106,26 +123,34 @@ result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         {
             m_pThis->m_stats->inc(PACKET_ERROR);
 
+            if (is(send))
+            {
+                m_pThis->m_stats->dec(PACKET_PENDDING);
+                asyncLog(console_base::_ERROR, "PacketHandler: " + getResultMessage(v));
+            }
+
             if (is(end))
                 m_pThis->m_stats->dec(PACKET_PENDDING);
-            else if (is(invoke))
+
+            if (is(invoke))
             {
                 m_pThis->m_stats->inc(PACKET_TOTAL);
                 m_pThis->m_stats->inc(PACKET_REQUEST);
             }
 
-            return v;
+            return done(CALL_RETURN_NULL);
         }
 
     private:
         obj_ptr<PacketHandler> m_pThis;
         obj_ptr<Stream_base> m_stm;
         obj_ptr<BufferedStream_base> m_stmBuffered;
-        obj_ptr<PacketMessage_base> m_msg;
+        obj_ptr<Message_base> m_msg;
+        obj_ptr<Message_base> m_rep;
     };
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Stream_base> stm = Stream_base::getInstance(v);
     if (stm == NULL)
@@ -137,7 +162,7 @@ result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     }
 
     if (stm == NULL)
-        return CALL_E_BADVARTYPE;
+        return CHECK_ERROR(CALL_E_BADVARTYPE);
 
     return (new asyncInvoke(this, stm, ac))->post(0);
 }
@@ -151,7 +176,7 @@ result_t PacketHandler::get_maxSize(int32_t &retVal)
 result_t PacketHandler::set_maxSize(int32_t newVal)
 {
     if (newVal < 0)
-        return CALL_E_OUTRANGE;
+        return CHECK_ERROR(CALL_E_OUTRANGE);
 
     m_maxSize = newVal;
     return 0;

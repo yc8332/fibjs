@@ -116,7 +116,7 @@ $(document).ready(function(){initNavTree('d5/d1b/classHttpRequest.html','../../'
 <div class="dynheader">
 类 HttpRequest 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d3/deb/classHttpRequest__inherit__graph.svg" width="155" height="822"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d3/deb/classHttpRequest__inherit__graph.svg" width="155" height="835"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -148,6 +148,9 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a527c0eba05ae52d3b2c9a2cf284277bd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d77/classHttpMessage.html#a527c0eba05ae52d3b2c9a2cf284277bd">removeHeader</a> (String name)</td></tr>
 <tr class="memdesc:a527c0eba05ae52d3b2c9a2cf284277bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">删除指定键值的全部消息头  <a href="#a527c0eba05ae52d3b2c9a2cf284277bd">更多...</a><br /></td></tr>
 <tr class="separator:a527c0eba05ae52d3b2c9a2cf284277bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42fdd87346cb529e34e1e12e41afe2bc"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d28/classMessage.html#a42fdd87346cb529e34e1e12e41afe2bc">write</a> (<a class="el" href="../../d0/d11/classBuffer.html">Buffer</a> data) async</td></tr>
+<tr class="memdesc:a42fdd87346cb529e34e1e12e41afe2bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">将给定的数据写入 body  <a href="#a42fdd87346cb529e34e1e12e41afe2bc">更多...</a><br /></td></tr>
+<tr class="separator:a42fdd87346cb529e34e1e12e41afe2bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8ed24470ab5214955c70bb108209f9d4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d28/classMessage.html#a8ed24470ab5214955c70bb108209f9d4">clear</a> ()</td></tr>
 <tr class="memdesc:a8ed24470ab5214955c70bb108209f9d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">清除消息的内容  <a href="#a8ed24470ab5214955c70bb108209f9d4">更多...</a><br /></td></tr>
 <tr class="separator:a8ed24470ab5214955c70bb108209f9d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -181,9 +184,6 @@ Public 属性</h2></td></tr>
 <tr class="memitem:a8a4ba832c2405354f31158e293a48a01"><td class="memItemLeft" align="right" valign="top">String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1b/classHttpRequest.html#a8a4ba832c2405354f31158e293a48a01">queryString</a></td></tr>
 <tr class="memdesc:a8a4ba832c2405354f31158e293a48a01"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询和设置请求查询字符串  <a href="#a8a4ba832c2405354f31158e293a48a01">更多...</a><br /></td></tr>
 <tr class="separator:a8a4ba832c2405354f31158e293a48a01"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aac83331072158243ff0e42c62039ae6a"><td class="memItemLeft" align="right" valign="top">readonly <a class="el" href="../../d8/d4c/classHttpResponse.html">HttpResponse</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1b/classHttpRequest.html#aac83331072158243ff0e42c62039ae6a">response</a></td></tr>
-<tr class="memdesc:aac83331072158243ff0e42c62039ae6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">获取 http 响应消息对象  <a href="#aac83331072158243ff0e42c62039ae6a">更多...</a><br /></td></tr>
-<tr class="separator:aac83331072158243ff0e42c62039ae6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afb0f722363cf1f24b88d68d690c542b1"><td class="memItemLeft" align="right" valign="top">readonly <a class="el" href="../../d6/dbd/classHttpCollection.html">HttpCollection</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1b/classHttpRequest.html#afb0f722363cf1f24b88d68d690c542b1">cookie</a></td></tr>
 <tr class="memdesc:afb0f722363cf1f24b88d68d690c542b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">获取包含消息 cookies 的容器  <a href="#afb0f722363cf1f24b88d68d690c542b1">更多...</a><br /></td></tr>
 <tr class="separator:afb0f722363cf1f24b88d68d690c542b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -226,6 +226,9 @@ Public 属性</h2></td></tr>
 <tr class="memitem:a9b19686184c56df8c1fca416751a71b3"><td class="memItemLeft" align="right" valign="top">readonly <a class="el" href="../../dc/de8/classStream.html">Stream</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d28/classMessage.html#a9b19686184c56df8c1fca416751a71b3">stream</a></td></tr>
 <tr class="memdesc:a9b19686184c56df8c1fca416751a71b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询消息 readFrom 时的流对象  <a href="#a9b19686184c56df8c1fca416751a71b3">更多...</a><br /></td></tr>
 <tr class="separator:a9b19686184c56df8c1fca416751a71b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a78167fa1a78f782d15ea7122333eb53d"><td class="memItemLeft" align="right" valign="top">readonly <a class="el" href="../../d6/d28/classMessage.html">Message</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d28/classMessage.html#a78167fa1a78f782d15ea7122333eb53d">response</a></td></tr>
+<tr class="memdesc:a78167fa1a78f782d15ea7122333eb53d"><td class="mdescLeft">&#160;</td><td class="mdescRight">获取响应消息对象  <a href="#a78167fa1a78f782d15ea7122333eb53d">更多...</a><br /></td></tr>
+<tr class="separator:a78167fa1a78f782d15ea7122333eb53d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
 <div class="textblock"><p>http 请求消息对象 </p>
@@ -529,6 +532,38 @@ Public 属性</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a42fdd87346cb529e34e1e12e41afe2bc"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Message::write </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d0/d11/classBuffer.html">Buffer</a>&#160;</td>
+          <td class="paramname"><em>data</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>将给定的数据写入 body </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">data</td><td>给定要写入的数据 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a class="anchor" id="a8ed24470ab5214955c70bb108209f9d4"></a>
 <div class="memitem">
 <div class="memproto">
@@ -768,20 +803,6 @@ Public 属性</h2></td></tr>
 </div><div class="memdoc">
 
 <p>查询和设置请求查询字符串 </p>
-
-</div>
-</div>
-<a class="anchor" id="aac83331072158243ff0e42c62039ae6a"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">readonly <a class="el" href="../../d8/d4c/classHttpResponse.html">HttpResponse</a> HttpRequest::response</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>获取 http 响应消息对象 </p>
 
 </div>
 </div>
@@ -1066,6 +1087,28 @@ Public 属性</h2></td></tr>
 </div><div class="memdoc">
 
 <p>查询消息 readFrom 时的流对象 </p>
+
+</div>
+</div>
+<a class="anchor" id="a78167fa1a78f782d15ea7122333eb53d"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">readonly <a class="el" href="../../d6/d28/classMessage.html">Message</a> Message::response</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>获取响应消息对象 </p>
 
 </div>
 </div>

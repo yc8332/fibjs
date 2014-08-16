@@ -1,6 +1,7 @@
 /***************************************************************************
- *   Copyright (C) 2012 by Leo Hoo                                         *
- *   lion@9465.net                                                         *
+ *                                                                         *
+ *   This file was automatically generated using idlc.js                   *
+ *   PLEASE DO NOT EDIT!!!!                                                *
  *                                                                         *
  ***************************************************************************/
 
@@ -18,21 +19,19 @@ namespace fibjs
 {
 
 class HttpMessage_base;
-class HttpResponse_base;
 class HttpCollection_base;
 
 class HttpRequest_base : public HttpMessage_base
 {
 public:
 	// HttpRequest_base
-	static result_t _new(obj_ptr<HttpRequest_base>& retVal);
+	static result_t _new(obj_ptr<HttpRequest_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_method(std::string& retVal) = 0;
 	virtual result_t set_method(const char* newVal) = 0;
 	virtual result_t get_address(std::string& retVal) = 0;
 	virtual result_t set_address(const char* newVal) = 0;
 	virtual result_t get_queryString(std::string& retVal) = 0;
 	virtual result_t set_queryString(const char* newVal) = 0;
-	virtual result_t get_response(obj_ptr<HttpResponse_base>& retVal) = 0;
 	virtual result_t get_cookie(obj_ptr<HttpCollection_base>& retVal) = 0;
 	virtual result_t get_form(obj_ptr<HttpCollection_base>& retVal) = 0;
 	virtual result_t get_query(obj_ptr<HttpCollection_base>& retVal) = 0;
@@ -47,7 +46,6 @@ public:
 	static void s_set_address(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_get_queryString(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_queryString(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-	static void s_get_response(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_cookie(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_form(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_query(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -55,7 +53,6 @@ public:
 
 }
 
-#include "HttpResponse.h"
 #include "HttpCollection.h"
 
 namespace fibjs
@@ -67,7 +64,6 @@ namespace fibjs
 			{"method", s_get_method, s_set_method},
 			{"address", s_get_address, s_set_address},
 			{"queryString", s_get_queryString, s_set_queryString},
-			{"response", s_get_response, block_set},
 			{"cookie", s_get_cookie, block_set},
 			{"form", s_get_form, block_set},
 			{"query", s_get_query, block_set}
@@ -76,7 +72,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"HttpRequest", s__new, 
-			0, NULL, 0, NULL, 7, s_property, NULL, NULL,
+			0, NULL, 0, NULL, 6, s_property, NULL, NULL,
 			&HttpMessage_base::class_info()
 		};
 
@@ -153,18 +149,6 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline void HttpRequest_base::s_get_response(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		obj_ptr<HttpResponse_base> vr;
-
-		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(HttpRequest_base);
-
-		hr = pInst->get_response(vr);
-
-		METHOD_RETURN();
-	}
-
 	inline void HttpRequest_base::s_get_cookie(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<HttpCollection_base> vr;
@@ -207,7 +191,7 @@ namespace fibjs
 
 		CONSTRUCT_ENTER(0, 0);
 
-		hr = _new(vr);
+		hr = _new(vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

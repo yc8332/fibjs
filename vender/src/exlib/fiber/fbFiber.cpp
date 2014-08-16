@@ -22,7 +22,7 @@
 
 namespace v8
 {
-namespace internal
+namespace base
 {
 
 class OS
@@ -63,7 +63,11 @@ void Fiber::yield()
 
 void Fiber::destroy()
 {
+#ifdef WIN32
+    VirtualFree(this, 0, MEM_RELEASE);
+#else
     free(this);
+#endif
 }
 
 static class _timerThread: public OSThread
@@ -157,7 +161,7 @@ public:
 
     virtual void Run()
     {
-        now = v8::internal::OS::TimeCurrentMillis();
+        now = v8::base::OS::TimeCurrentMillis();
 
         while (1)
         {
@@ -166,7 +170,7 @@ public:
 
             wait();
 
-            now = v8::internal::OS::TimeCurrentMillis();
+            now = v8::base::OS::TimeCurrentMillis();
 
             while (1)
             {

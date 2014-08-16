@@ -5,9 +5,6 @@
  *      Author: lion
  */
 
-#include "HttpHandler.h"
-#include "HttpFileHandler.h"
-#include "JSHandler.h"
 #include "ifs/http.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
@@ -21,12 +18,6 @@
 
 namespace fibjs
 {
-
-result_t http_base::fileHandler(const char *root, obj_ptr<Handler_base> &retVal)
-{
-    retVal = new HttpFileHandler(root);
-    return 0;
-}
 
 result_t http_base::request(const char *host, int32_t port, HttpRequest_base *req,
                             bool ssl, obj_ptr<HttpResponse_base> &retVal,
@@ -157,7 +148,7 @@ result_t http_base::request(const char *host, int32_t port, HttpRequest_base *re
     };
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncRequest(host, port, req, ssl, retVal, ac))->post(0);
 }
@@ -196,11 +187,11 @@ result_t http_base::request(const char *method, const char *url,
             if (!qstrcmp(protocol.c_str(), "https:"))
                 ssl = true;
             else if (qstrcmp(protocol.c_str(), "http:"))
-                return Runtime::setError("unknown protocol");
+                return CHECK_ERROR(Runtime::setError("unknown protocol"));
 
             u->get_host(host);
             if (host.empty())
-                return Runtime::setError("unknown host");
+                return CHECK_ERROR(Runtime::setError("unknown host"));
 
             u->get_hostname(hostname);
             u->get_port(port);
@@ -240,7 +231,7 @@ result_t http_base::request(const char *method, const char *url,
         location = v.string();
 
         if (urls.find(location) != urls.end())
-            return Runtime::setError("redirect cycle");
+            return CHECK_ERROR(Runtime::setError("redirect cycle"));
 
         url = location.c_str();
     }

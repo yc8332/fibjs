@@ -44,7 +44,11 @@
  *     <http://eprint.iacr.org/2004/342.pdf>
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_ECP_C)
 
@@ -72,6 +76,11 @@
 #define inline __inline
 #endif /* __ARMCC_VERSION */
 #endif /*_MSC_VER */
+
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
 
 #if defined(POLARSSL_SELF_TEST)
 /*
@@ -122,7 +131,7 @@ typedef enum
  * Curves are listed in order: largest curves first, and for a given size,
  * fastest curves first. This provides the default order for the SSL module.
  */
-static const ecp_curve_info ecp_supported_curves[POLARSSL_ECP_DP_MAX] =
+static const ecp_curve_info ecp_supported_curves[] =
 {
 #if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
     { POLARSSL_ECP_DP_SECP521R1,    25,     521,    "secp521r1"         },
@@ -160,14 +169,17 @@ static const ecp_curve_info ecp_supported_curves[POLARSSL_ECP_DP_MAX] =
     { POLARSSL_ECP_DP_NONE,          0,     0,      NULL                },
 };
 
-static ecp_group_id ecp_supported_grp_id[POLARSSL_ECP_DP_MAX];
+#define ECP_NB_CURVES   sizeof( ecp_supported_curves ) /    \
+                        sizeof( ecp_supported_curves[0] )
+
+static ecp_group_id ecp_supported_grp_id[ECP_NB_CURVES];
 
 /*
  * List of supported curves and associated info
  */
 const ecp_curve_info *ecp_curve_list( void )
 {
-    return ecp_supported_curves;
+    return( ecp_supported_curves );
 }
 
 /*
@@ -193,7 +205,7 @@ const ecp_group_id *ecp_grp_id_list( void )
         init_done = 1;
     }
 
-    return ecp_supported_grp_id;
+    return( ecp_supported_grp_id );
 }
 
 /*
@@ -293,7 +305,7 @@ void ecp_group_init( ecp_group *grp )
  */
 void ecp_keypair_init( ecp_keypair *key )
 {
-    if ( key == NULL )
+    if( key == NULL )
         return;
 
     ecp_group_init( &key->grp );
@@ -340,7 +352,7 @@ void ecp_group_free( ecp_group *grp )
         polarssl_free( grp->T );
     }
 
-    memset( grp, 0, sizeof( ecp_group ) );
+    polarssl_zeroize( grp, sizeof( ecp_group ) );
 }
 
 /*
@@ -348,7 +360,7 @@ void ecp_group_free( ecp_group *grp )
  */
 void ecp_keypair_free( ecp_keypair *key )
 {
-    if ( key == NULL )
+    if( key == NULL )
         return;
 
     ecp_group_free( &key->grp );
@@ -483,6 +495,9 @@ int ecp_point_read_binary( const ecp_group *grp, ecp_point *pt,
     int ret;
     size_t plen;
 
+    if ( ilen < 1 )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
     if( buf[0] == 0x00 )
     {
         if( ilen == 1 )
@@ -520,7 +535,7 @@ int ecp_tls_read_point( const ecp_group *grp, ecp_point *pt,
     const unsigned char *buf_start;
 
     /*
-     * We must have at least two bytes (1 for length, at least of for data)
+     * We must have at least two bytes (1 for length, at least one for data)
      */
     if( buf_len < 2 )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
@@ -566,7 +581,7 @@ int ecp_tls_write_point( const ecp_group *grp, const ecp_point *pt,
     buf[0] = (unsigned char) *olen;
     ++*olen;
 
-    return 0;
+    return( 0 );
 }
 
 /*
@@ -655,7 +670,7 @@ int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
     buf[0] = curve_info->tls_id >> 8;
     buf[1] = curve_info->tls_id & 0xFF;
 
-    return 0;
+    return( 0 );
 }
 
 /*
@@ -1114,7 +1129,7 @@ static int ecp_randomize_jac( const ecp_group *grp, ecp_point *pt,
 {
     int ret;
     mpi l, ll;
-    size_t p_size = (grp->pbits + 7) / 8;
+    size_t p_size = ( grp->pbits + 7 ) / 8;
     int count = 0;
 
     mpi_init( &l ); mpi_init( &ll );
@@ -1125,7 +1140,7 @@ static int ecp_randomize_jac( const ecp_group *grp, ecp_point *pt,
         mpi_fill_random( &l, p_size, f_rng, p_rng );
 
         while( mpi_cmp_mpi( &l, &grp->P ) >= 0 )
-            mpi_shift_r( &l, 1 );
+            MPI_CHK( mpi_shift_r( &l, 1 ) );
 
         if( count++ > 10 )
             return( POLARSSL_ERR_ECP_RANDOM_FAILED );
@@ -1238,7 +1253,7 @@ static int ecp_precompute_comb( const ecp_group *grp,
     MPI_CHK( ecp_copy( &T[0], P ) );
 
     k = 0;
-    for( i = 1; i < ( 1U << (w-1) ); i <<= 1 )
+    for( i = 1; i < ( 1U << ( w - 1 ) ); i <<= 1 )
     {
         cur = T + i;
         MPI_CHK( ecp_copy( cur, T + ( i >> 1 ) ) );
@@ -1255,7 +1270,7 @@ static int ecp_precompute_comb( const ecp_group *grp,
      * Be careful to update T[2^l] only after using it!
      */
     k = 0;
-    for( i = 1; i < ( 1U << (w-1) ); i <<= 1 )
+    for( i = 1; i < ( 1U << ( w - 1 ) ); i <<= 1 )
     {
         j = i;
         while( j-- )
@@ -1499,7 +1514,7 @@ static int ecp_randomize_mxz( const ecp_group *grp, ecp_point *P,
 {
     int ret;
     mpi l;
-    size_t p_size = (grp->pbits + 7) / 8;
+    size_t p_size = ( grp->pbits + 7 ) / 8;
     int count = 0;
 
     mpi_init( &l );
@@ -1510,7 +1525,7 @@ static int ecp_randomize_mxz( const ecp_group *grp, ecp_point *P,
         mpi_fill_random( &l, p_size, f_rng, p_rng );
 
         while( mpi_cmp_mpi( &l, &grp->P ) >= 0 )
-            mpi_shift_r( &l, 1 );
+            MPI_CHK( mpi_shift_r( &l, 1 ) );
 
         if( count++ > 10 )
             return( POLARSSL_ERR_ECP_RANDOM_FAILED );
@@ -1598,7 +1613,7 @@ static int ecp_mul_mxz( ecp_group *grp, ecp_point *R,
     ecp_point_init( &RP ); mpi_init( &PX );
 
     /* Save PX and read from P before writing to R, in case P == R */
-    mpi_copy( &PX, &P->X );
+    MPI_CHK( mpi_copy( &PX, &P->X ) );
     MPI_CHK( ecp_copy( &RP, P ) );
 
     /* Set R to zero in modified x/z coordinates */
@@ -1772,7 +1787,7 @@ int ecp_check_privkey( const ecp_group *grp, const mpi *d )
         else
             return( 0 );
     }
-#endif
+#endif /* POLARSSL_ECP_MONTGOMERY */
 #if defined(POLARSSL_ECP_SHORT_WEIERSTRASS)
     if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS )
     {
@@ -1783,7 +1798,7 @@ int ecp_check_privkey( const ecp_group *grp, const mpi *d )
         else
             return( 0 );
     }
-#endif
+#endif /* POLARSSL_ECP_SHORT_WEIERSTRASS */
 
     return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 }
@@ -1796,7 +1811,7 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
                      void *p_rng )
 {
     int ret;
-    size_t n_size = (grp->nbits + 7) / 8;
+    size_t n_size = ( grp->nbits + 7 ) / 8;
 
 #if defined(POLARSSL_ECP_MONTGOMERY)
     if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_MONTGOMERY )
@@ -1819,7 +1834,7 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
         MPI_CHK( mpi_set_bit( d, 2, 0 ) );
     }
     else
-#endif
+#endif /* POLARSSL_ECP_MONTGOMERY */
 #if defined(POLARSSL_ECP_SHORT_WEIERSTRASS)
     if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS )
     {
@@ -1856,7 +1871,7 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
                mpi_cmp_mpi( d, &grp->N ) >= 0 );
     }
     else
-#endif
+#endif /* POLARSSL_ECP_SHORT_WEIERSTRASS */
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
 cleanup:
@@ -2009,6 +2024,6 @@ cleanup:
     return( ret );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_ECP_C */

@@ -6,12 +6,13 @@
  */
 
 #include <LruCache.h>
+#include <Event.h>
 
 namespace fibjs
 {
 
 result_t LruCache_base::_new(int32_t size, int32_t timeout,
-                             obj_ptr<LruCache_base> &retVal)
+                             obj_ptr<LruCache_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new LruCache(size, timeout);
     return 0;
@@ -20,28 +21,21 @@ result_t LruCache_base::_new(int32_t size, int32_t timeout,
 void LruCache::cleanup()
 {
     std::map<std::string, _linkedNode>::iterator it;
-    date_t t;
-
-    t.now();
 
     if (m_timeout > 0)
     {
-        while (((it = m_end) != m_datas.end())
-                && (t.diff(it->second.update) > m_timeout))
-        {
+        date_t t;
+        t.now();
+
+        while ((it = m_end) != m_datas.end() &&
+                t.diff(it->second.insert) > m_timeout)
             remove(it);
-            m_datas.erase(it);
-        }
     }
 
     if (m_size > 0)
     {
         while ((int32_t) m_datas.size() > m_size)
-        {
-            it = m_end;
-            remove(it);
-            m_datas.erase(it);
-        }
+            remove(m_end_lru);
     }
 }
 
@@ -56,6 +50,10 @@ result_t LruCache::get_size(int32_t &retVal)
 result_t LruCache::clear()
 {
     m_datas.clear();
+
+    m_begin_lru = m_datas.end();
+    m_end_lru = m_datas.end();
+
     m_begin = m_datas.end();
     m_end = m_datas.end();
 
@@ -72,21 +70,77 @@ result_t LruCache::has(const char *name, bool &retVal)
 
 result_t LruCache::get(const char *name, v8::Local<v8::Value> &retVal)
 {
+    return get(name, v8::Local<v8::Function>(), retVal);
+}
+
+result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
+                       v8::Local<v8::Value> &retVal)
+{
+    std::map<std::string, _linkedNode>::iterator find;
+
     cleanup();
 
-    std::map<std::string, _linkedNode>::iterator find = m_datas.find(name);
-
-    if (find == m_datas.end())
-        return 0;
-
-    if (m_begin != find)
+    while (true)
     {
-        remove(find);
-        insert(find);
+        find  = m_datas.find(name);
+
+        if (find == m_datas.end())
+        {
+            if (!updater.IsEmpty())
+            {
+                static _linkedNode newNode;
+
+                m_datas.insert(std::pair<std::string, _linkedNode>(name, newNode));
+                find = m_datas.find(name);
+
+                insert(find);
+
+                if (m_timeout > 0)
+                    find->second.insert.now();
+
+                obj_ptr<Event_base> e = new Event();
+                find->second.m_event = e;
+
+                v8::Handle<v8::String> n = v8::String::NewFromUtf8(isolate, name);
+                v8::Handle<v8::Value> a = n;
+                v8::Local<v8::Value> v = updater->Call(wrap(), 1, &a);
+
+                e->set();
+
+                find = m_datas.find(name);
+                if (!v.IsEmpty())
+                {
+                    if (find != m_datas.end())
+                    {
+                        wrap()->SetHiddenValue(n, v);
+                        if (find->second.m_event == e)
+                            find->second.m_event.Release();
+                    }
+                }
+                else
+                {
+                    if (find != m_datas.end() && find->second.m_event == e)
+                        remove(find);
+                    return CHECK_ERROR(CALL_E_JAVASCRIPT);
+                }
+
+                retVal = v;
+            }
+
+            return 0;
+        }
+
+        if (find->second.m_event)
+        {
+            obj_ptr<Event_base> e = find->second.m_event;
+            e->wait();
+        }
+        else
+            break;
     }
 
-    retVal = find->second.value;
-    find->second.update.now();
+    update(find);
+    retVal = wrap()->GetHiddenValue(v8::String::NewFromUtf8(isolate, name));
 
     return 0;
 }
@@ -97,14 +151,12 @@ result_t LruCache::set(const char *name, v8::Local<v8::Value> value)
 
     if (find != m_datas.end())
     {
-        if (m_begin != find)
-        {
-            remove(find);
-            insert(find);
-        }
+        update(find);
+        update_time(find);
 
-        find->second.value = value;
-        find->second.update.now();
+        if (m_timeout > 0)
+            find->second.insert.now();
+        wrap()->SetHiddenValue(v8::String::NewFromUtf8(isolate, name), value);
     }
 
     cleanup();
@@ -127,15 +179,13 @@ result_t LruCache::put(const char *name, v8::Local<v8::Value> value)
     }
     else
     {
-        if (m_begin != find)
-        {
-            remove(find);
-            insert(find);
-        }
+        update(find);
+        update_time(find);
     }
 
-    find->second.value = value;
-    find->second.update.now();
+    if (m_timeout > 0)
+        find->second.insert.now();
+    wrap()->SetHiddenValue(v8::String::NewFromUtf8(isolate, name), value);
 
     cleanup();
 
@@ -173,7 +223,6 @@ result_t LruCache::remove(const char *name)
         return 0;
 
     remove(find);
-    m_datas.erase(find);
 
     return 0;
 }
@@ -190,15 +239,15 @@ result_t LruCache::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 {
     cleanup();
 
-    std::map<std::string, _linkedNode>::iterator it = m_begin;
+    std::map<std::string, _linkedNode>::iterator it = m_begin_lru;
     v8::Local<v8::Object> obj = v8::Object::New(isolate);
 
     while (it != m_datas.end())
     {
-        obj->Set(v8::String::NewFromUtf8(isolate, it->first.c_str(),
-                                         v8::String::kNormalString,
-                                         (int) it->first.length()),
-                 it->second.value);
+        v8::Local<v8::String> name = v8::String::NewFromUtf8(isolate, it->first.c_str(),
+                                     v8::String::kNormalString,
+                                     (int) it->first.length());
+        obj->Set(name, wrap()->GetHiddenValue(name));
         it = it->second.next();
     }
 

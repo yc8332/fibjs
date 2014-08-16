@@ -27,7 +27,11 @@
  * to store and retrieve the session information.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_SSL_CACHE_C)
 
@@ -101,7 +105,9 @@ int ssl_cache_get( void *data, ssl_session *session )
          */
         if( entry->peer_cert.p != NULL )
         {
-            session->peer_cert = (x509_crt *) polarssl_malloc( sizeof(x509_crt) );
+            session->peer_cert =
+                (x509_crt *) polarssl_malloc( sizeof(x509_crt) );
+
             if( session->peer_cert == NULL )
             {
                 ret = 1;
@@ -220,7 +226,8 @@ int ssl_cache_set( void *data, const ssl_session *session )
             /*
              * max_entries not reached, create new entry
              */
-            cur = (ssl_cache_entry *) polarssl_malloc( sizeof(ssl_cache_entry) );
+            cur = (ssl_cache_entry *)
+                        polarssl_malloc( sizeof(ssl_cache_entry) );
             if( cur == NULL )
             {
                 ret = 1;
@@ -257,7 +264,8 @@ int ssl_cache_set( void *data, const ssl_session *session )
      */
     if( session->peer_cert != NULL )
     {
-        cur->peer_cert.p = (unsigned char *) polarssl_malloc( session->peer_cert->raw.len );
+        cur->peer_cert.p = (unsigned char *)
+                                polarssl_malloc( session->peer_cert->raw.len );
         if( cur->peer_cert.p == NULL )
         {
             ret = 1;
@@ -313,8 +321,7 @@ void ssl_cache_free( ssl_cache_context *cache )
         ssl_session_free( &prv->session );
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-        if( prv->peer_cert.p != NULL )
-            polarssl_free( prv->peer_cert.p );
+        polarssl_free( prv->peer_cert.p );
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
         polarssl_free( prv );

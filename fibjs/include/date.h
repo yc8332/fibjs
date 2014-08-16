@@ -12,7 +12,7 @@
 
 namespace v8
 {
-namespace internal
+namespace base
 {
 
 class OS
@@ -66,7 +66,7 @@ public:
 
     void now()
     {
-        d = v8::internal::OS::TimeCurrentMillis();
+        d = v8::base::OS::TimeCurrentMillis();
     }
 
     void create(int Y, int M, int D, int h, int m, int s, int ms);
@@ -105,6 +105,7 @@ public:
     }
 
     void add(int num, int part = _SECOND);
+    void fix(int part = _SECOND);
 
     void toLocal();
     void toUTC();
@@ -113,6 +114,7 @@ public:
     void toGMTString(std::string &retVal);
     void toX509String(std::string &retVal);
     void sqlString(std::string &retVal);
+    void stamp(std::string &retVal);
 
 private:
     double d;

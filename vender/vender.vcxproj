@@ -114,6 +114,46 @@
     <ClCompile Include="src\jpeg\jquant2.c" />
     <ClCompile Include="src\jpeg\jutils.c" />
     <ClCompile Include="src\jpeg\transupp.c" />
+    <ClCompile Include="src\leveldb\db\builder.cc" />
+    <ClCompile Include="src\leveldb\db\dbformat.cc" />
+    <ClCompile Include="src\leveldb\db\db_impl.cc" />
+    <ClCompile Include="src\leveldb\db\db_iter.cc" />
+    <ClCompile Include="src\leveldb\db\filename.cc" />
+    <ClCompile Include="src\leveldb\db\log_reader.cc" />
+    <ClCompile Include="src\leveldb\db\log_writer.cc" />
+    <ClCompile Include="src\leveldb\db\memtable.cc" />
+    <ClCompile Include="src\leveldb\db\repair.cc" />
+    <ClCompile Include="src\leveldb\db\table_cache.cc" />
+    <ClCompile Include="src\leveldb\db\version_edit.cc" />
+    <ClCompile Include="src\leveldb\db\version_set.cc" />
+    <ClCompile Include="src\leveldb\db\write_batch.cc" />
+    <ClCompile Include="src\leveldb\table\block.cc" />
+    <ClCompile Include="src\leveldb\table\block_builder.cc" />
+    <ClCompile Include="src\leveldb\table\filter_block.cc" />
+    <ClCompile Include="src\leveldb\table\format.cc" />
+    <ClCompile Include="src\leveldb\table\iterator.cc" />
+    <ClCompile Include="src\leveldb\table\merger.cc" />
+    <ClCompile Include="src\leveldb\table\table.cc" />
+    <ClCompile Include="src\leveldb\table\table_builder.cc" />
+    <ClCompile Include="src\leveldb\table\two_level_iterator.cc" />
+    <ClCompile Include="src\leveldb\util\arena.cc" />
+    <ClCompile Include="src\leveldb\util\bloom.cc" />
+    <ClCompile Include="src\leveldb\util\cache.cc" />
+    <ClCompile Include="src\leveldb\util\coding.cc" />
+    <ClCompile Include="src\leveldb\util\comparator.cc" />
+    <ClCompile Include="src\leveldb\util\crc32c.cc" />
+    <ClCompile Include="src\leveldb\util\env.cc" />
+    <ClCompile Include="src\leveldb\util\env_posix.cc" />
+    <ClCompile Include="src\leveldb\util\env_win.cc" />
+    <ClCompile Include="src\leveldb\util\filter_policy.cc" />
+    <ClCompile Include="src\leveldb\util\hash.cc" />
+    <ClCompile Include="src\leveldb\util\histogram.cc" />
+    <ClCompile Include="src\leveldb\util\db_logging.cc" />
+    <ClCompile Include="src\leveldb\util\options.cc" />
+    <ClCompile Include="src\leveldb\util\status.cc" />
+    <ClCompile Include="src\leveldb\util\testharness.cc" />
+    <ClCompile Include="src\leveldb\util\testutil.cc" />
+    <ClCompile Include="src\leveldb\util\win_logger.cc" />
     <ClCompile Include="src\mongo\bcon.c" />
     <ClCompile Include="src\mongo\bson.c" />
     <ClCompile Include="src\mongo\encoding.c" />
@@ -166,6 +206,7 @@
     <ClCompile Include="src\polarssl\base64.c" />
     <ClCompile Include="src\polarssl\blowfish.c" />
     <ClCompile Include="src\polarssl\camellia.c" />
+    <ClCompile Include="src\polarssl\ccm.c" />
     <ClCompile Include="src\polarssl\certs.c" />
     <ClCompile Include="src\polarssl\cipher.c" />
     <ClCompile Include="src\polarssl\cipher_wrap.c" />
@@ -216,6 +257,7 @@
     <ClCompile Include="src\polarssl\ssl_version.c" />
     <ClCompile Include="src\polarssl\threading.c" />
     <ClCompile Include="src\polarssl\timing.c" />
+    <ClCompile Include="src\polarssl\version_features.c" />
     <ClCompile Include="src\polarssl\x509.c" />
     <ClCompile Include="src\polarssl\x509write_crt.c" />
     <ClCompile Include="src\polarssl\x509write_csr.c" />
@@ -224,6 +266,10 @@
     <ClCompile Include="src\polarssl\x509_crt.c" />
     <ClCompile Include="src\polarssl\x509_csr.c" />
     <ClCompile Include="src\polarssl\xtea.c" />
+    <ClCompile Include="src\snappy\snappy-c.cc" />
+    <ClCompile Include="src\snappy\snappy-sinksource.cc" />
+    <ClCompile Include="src\snappy\snappy-stubs-internal.cc" />
+    <ClCompile Include="src\snappy\snappy.cc" />
     <ClCompile Include="src\sqlite\sqlite3.c" />
     <ClCompile Include="src\tiff\tif_aux.c" />
     <ClCompile Include="src\tiff\tif_close.c" />
@@ -283,9 +329,28 @@
     <ClCompile Include="src\v8\src\arguments.cc" />
     <ClCompile Include="src\v8\src\assembler.cc" />
     <ClCompile Include="src\v8\src\assert-scope.cc" />
+    <ClCompile Include="src\v8\src\ast-value-factory.cc" />
     <ClCompile Include="src\v8\src\ast.cc" />
     <ClCompile Include="src\v8\src\base\atomicops_internals_x86_gcc.cc" />
+    <ClCompile Include="src\v8\src\base\cpu.cc" />
+    <ClCompile Include="src\v8\src\base\logging.cc" />
     <ClCompile Include="src\v8\src\base\once.cc" />
+    <ClCompile Include="src\v8\src\base\platform\condition-variable.cc" />
+    <ClCompile Include="src\v8\src\base\platform\mutex.cc" />
+    <ClCompile Include="src\v8\src\base\platform\platform-fiber.cc" />
+    <ClCompile Include="src\v8\src\base\platform\platform-freebsd.cc" />
+    <ClCompile Include="src\v8\src\base\platform\platform-linux.cc" />
+    <ClCompile Include="src\v8\src\base\platform\platform-macos.cc" />
+    <ClCompile Include="src\v8\src\base\platform\platform-openbsd.cc" />
+    <ClCompile Include="src\v8\src\base\platform\platform-posix.cc" />
+    <ClCompile Include="src\v8\src\base\platform\platform-qnx.cc" />
+    <ClCompile Include="src\v8\src\base\platform\platform-solaris.cc" />
+    <ClCompile Include="src\v8\src\base\platform\platform-win32.cc" />
+    <ClCompile Include="src\v8\src\base\platform\semaphore.cc" />
+    <ClCompile Include="src\v8\src\base\platform\time.cc" />
+    <ClCompile Include="src\v8\src\base\platform\_date_cache.cc" />
+    <ClCompile Include="src\v8\src\base\utils\random-number-generator.cc" />
+    <ClCompile Include="src\v8\src\base\win32-math.cc" />
     <ClCompile Include="src\v8\src\bignum-dtoa.cc" />
     <ClCompile Include="src\v8\src\bignum.cc" />
     <ClCompile Include="src\v8\src\bootstrapper.cc" />
@@ -297,11 +362,52 @@
     <ClCompile Include="src\v8\src\codegen.cc" />
     <ClCompile Include="src\v8\src\compilation-cache.cc" />
     <ClCompile Include="src\v8\src\compiler.cc" />
+    <ClCompile Include="src\v8\src\compiler\arm64\code-generator-arm64.cc" />
+    <ClCompile Include="src\v8\src\compiler\arm64\instruction-selector-arm64.cc" />
+    <ClCompile Include="src\v8\src\compiler\arm64\linkage-arm64.cc" />
+    <ClCompile Include="src\v8\src\compiler\arm\code-generator-arm.cc" />
+    <ClCompile Include="src\v8\src\compiler\arm\instruction-selector-arm.cc" />
+    <ClCompile Include="src\v8\src\compiler\arm\linkage-arm.cc" />
+    <ClCompile Include="src\v8\src\compiler\ast-graph-builder.cc" />
+    <ClCompile Include="src\v8\src\compiler\code-generator.cc" />
+    <ClCompile Include="src\v8\src\compiler\control-builders.cc" />
+    <ClCompile Include="src\v8\src\compiler\gap-resolver.cc" />
+    <ClCompile Include="src\v8\src\compiler\graph-builder.cc" />
+    <ClCompile Include="src\v8\src\compiler\graph-reducer.cc" />
+    <ClCompile Include="src\v8\src\compiler\graph-replay.cc" />
+    <ClCompile Include="src\v8\src\compiler\graph-visualizer.cc" />
+    <ClCompile Include="src\v8\src\compiler\graph.cc" />
+    <ClCompile Include="src\v8\src\compiler\ia32\code-generator-ia32.cc" />
+    <ClCompile Include="src\v8\src\compiler\ia32\instruction-selector-ia32.cc" />
+    <ClCompile Include="src\v8\src\compiler\ia32\linkage-ia32.cc" />
+    <ClCompile Include="src\v8\src\compiler\instruction-selector.cc" />
+    <ClCompile Include="src\v8\src\compiler\instruction.cc" />
+    <ClCompile Include="src\v8\src\compiler\js-context-specialization.cc" />
+    <ClCompile Include="src\v8\src\compiler\js-generic-lowering.cc" />
+    <ClCompile Include="src\v8\src\compiler\js-graph.cc" />
+    <ClCompile Include="src\v8\src\compiler\js-typed-lowering.cc" />
+    <ClCompile Include="src\v8\src\compiler\linkage.cc" />
+    <ClCompile Include="src\v8\src\compiler\lowering-builder.cc" />
+    <ClCompile Include="src\v8\src\compiler\machine-operator-reducer.cc" />
+    <ClCompile Include="src\v8\src\compiler\node-cache.cc" />
+    <ClCompile Include="src\v8\src\compiler\node.cc" />
+    <ClCompile Include="src\v8\src\compiler\pipeline.cc" />
+    <ClCompile Include="src\v8\src\compiler\raw-machine-assembler.cc" />
+    <ClCompile Include="src\v8\src\compiler\register-allocator.cc" />
+    <ClCompile Include="src\v8\src\compiler\schedule.cc" />
+    <ClCompile Include="src\v8\src\compiler\scheduler.cc" />
+    <ClCompile Include="src\v8\src\compiler\simplified-lowering.cc" />
+    <ClCompile Include="src\v8\src\compiler\source-position.cc" />
+    <ClCompile Include="src\v8\src\compiler\structured-machine-assembler.cc" />
+    <ClCompile Include="src\v8\src\compiler\typer.cc" />
+    <ClCompile Include="src\v8\src\compiler\verifier.cc" />
+    <ClCompile Include="src\v8\src\compiler\x64\code-generator-x64.cc" />
+    <ClCompile Include="src\v8\src\compiler\x64\instruction-selector-x64.cc" />
+    <ClCompile Include="src\v8\src\compiler\x64\linkage-x64.cc" />
     <ClCompile Include="src\v8\src\contexts.cc" />
     <ClCompile Include="src\v8\src\conversions.cc" />
     <ClCompile Include="src\v8\src\counters.cc" />
     <ClCompile Include="src\v8\src\cpu-profiler.cc" />
-    <ClCompile Include="src\v8\src\cpu.cc" />
     <ClCompile Include="src\v8\src\data-flow.cc" />
     <ClCompile Include="src\v8\src\date.cc" />
     <ClCompile Include="src\v8\src\dateparser.cc" />
@@ -332,7 +438,13 @@
     <ClCompile Include="src\v8\src\handles.cc" />
     <ClCompile Include="src\v8\src\heap-profiler.cc" />
     <ClCompile Include="src\v8\src\heap-snapshot-generator.cc" />
-    <ClCompile Include="src\v8\src\heap.cc" />
+    <ClCompile Include="src\v8\src\heap\gc-tracer.cc" />
+    <ClCompile Include="src\v8\src\heap\heap.cc" />
+    <ClCompile Include="src\v8\src\heap\incremental-marking.cc" />
+    <ClCompile Include="src\v8\src\heap\mark-compact.cc" />
+    <ClCompile Include="src\v8\src\heap\objects-visiting.cc" />
+    <ClCompile Include="src\v8\src\heap\spaces.cc" />
+    <ClCompile Include="src\v8\src\heap\sweeper-thread.cc" />
     <ClCompile Include="src\v8\src\hydrogen-bce.cc" />
     <ClCompile Include="src\v8\src\hydrogen-bch.cc" />
     <ClCompile Include="src\v8\src\hydrogen-canonicalize.cc" />
@@ -378,7 +490,6 @@
     <ClCompile Include="src\v8\src\ia32\stub-cache-ia32.cc" />
     <ClCompile Include="src\v8\src\ic.cc" />
     <ClCompile Include="src\v8\src\icu_util.cc" />
-    <ClCompile Include="src\v8\src\incremental-marking.cc" />
     <ClCompile Include="src\v8\src\interface.cc" />
     <ClCompile Include="src\v8\src\interpreter-irregexp.cc" />
     <ClCompile Include="src\v8\src\isolate.cc" />
@@ -391,28 +502,14 @@
     <ClCompile Include="src\v8\src\log-utils.cc" />
     <ClCompile Include="src\v8\src\log.cc" />
     <ClCompile Include="src\v8\src\lookup.cc" />
-    <ClCompile Include="src\v8\src\mark-compact.cc" />
     <ClCompile Include="src\v8\src\messages.cc" />
     <ClCompile Include="src\v8\src\objects-debug.cc" />
     <ClCompile Include="src\v8\src\objects-printer.cc" />
-    <ClCompile Include="src\v8\src\objects-visiting.cc" />
     <ClCompile Include="src\v8\src\objects.cc" />
     <ClCompile Include="src\v8\src\optimizing-compiler-thread.cc" />
+    <ClCompile Include="src\v8\src\ostreams.cc" />
     <ClCompile Include="src\v8\src\parser.cc" />
-    <ClCompile Include="src\v8\src\platform-fiber.cc" />
-    <ClCompile Include="src\v8\src\platform-freebsd.cc" />
-    <ClCompile Include="src\v8\src\platform-linux.cc" />
-    <ClCompile Include="src\v8\src\platform-macos.cc" />
-    <ClCompile Include="src\v8\src\platform-openbsd.cc" />
-    <ClCompile Include="src\v8\src\platform-posix.cc" />
-    <ClCompile Include="src\v8\src\platform-qnx.cc" />
-    <ClCompile Include="src\v8\src\platform-solaris.cc" />
-    <ClCompile Include="src\v8\src\platform-win32.cc" />
-    <ClCompile Include="src\v8\src\platform\condition-variable.cc" />
-    <ClCompile Include="src\v8\src\platform\mutex.cc" />
-    <ClCompile Include="src\v8\src\platform\semaphore.cc" />
-    <ClCompile Include="src\v8\src\platform\time.cc" />
-    <ClCompile Include="src\v8\src\platform\_date_cache.cc" />
+    <ClCompile Include="src\v8\src\perf-jit.cc" />
     <ClCompile Include="src\v8\src\preparse-data.cc" />
     <ClCompile Include="src\v8\src\preparser.cc" />
     <ClCompile Include="src\v8\src\prettyprinter.cc" />
@@ -434,27 +531,24 @@
     <ClCompile Include="src\v8\src\serialize.cc" />
     <ClCompile Include="src\v8\src\snapshot-common.cc" />
     <ClCompile Include="src\v8\src\snapshot-empty.cc" />
-    <ClCompile Include="src\v8\src\spaces.cc" />
+    <ClCompile Include="src\v8\src\snapshot-source-sink.cc" />
     <ClCompile Include="src\v8\src\store-buffer.cc" />
     <ClCompile Include="src\v8\src\string-search.cc" />
     <ClCompile Include="src\v8\src\string-stream.cc" />
     <ClCompile Include="src\v8\src\strtod.cc" />
     <ClCompile Include="src\v8\src\stub-cache.cc" />
-    <ClCompile Include="src\v8\src\sweeper-thread.cc" />
+    <ClCompile Include="src\v8\src\third_party\fdlibm\fdlibm.cc" />
     <ClCompile Include="src\v8\src\token.cc" />
     <ClCompile Include="src\v8\src\transitions.cc" />
-    <ClCompile Include="src\v8\src\trig-table.cc" />
     <ClCompile Include="src\v8\src\type-info.cc" />
     <ClCompile Include="src\v8\src\types.cc" />
     <ClCompile Include="src\v8\src\typing.cc" />
     <ClCompile Include="src\v8\src\unicode.cc" />
     <ClCompile Include="src\v8\src\utils.cc" />
-    <ClCompile Include="src\v8\src\utils\random-number-generator.cc" />
     <ClCompile Include="src\v8\src\v8.cc" />
     <ClCompile Include="src\v8\src\v8threads.cc" />
     <ClCompile Include="src\v8\src\variables.cc" />
     <ClCompile Include="src\v8\src\version.cc" />
-    <ClCompile Include="src\v8\src\win32-math.cc" />
     <ClCompile Include="src\v8\src\x64\assembler-x64.cc" />
     <ClCompile Include="src\v8\src\x64\builtins-x64.cc" />
     <ClCompile Include="src\v8\src\x64\code-stubs-x64.cc" />
@@ -485,15 +579,29 @@
     <ClCompile Include="src\zlib\trees.c" />
     <ClCompile Include="src\zlib\uncompr.c" />
     <ClCompile Include="src\zlib\zutil.c" />
+    <ClCompile Include="src\zookeeper\hashtable\hashtable.c" />
+    <ClCompile Include="src\zookeeper\hashtable\hashtable_itr.c" />
+    <ClCompile Include="src\zookeeper\mt_adaptor.c" />
+    <ClCompile Include="src\zookeeper\recordio.c" />
+    <ClCompile Include="src\zookeeper\winport.c" />
+    <ClCompile Include="src\zookeeper\zk_hashtable.c" />
+    <ClCompile Include="src\zookeeper\zk_log.c" />
+    <ClCompile Include="src\zookeeper\zookeeper.c" />
+    <ClCompile Include="src\zookeeper\zookeeper.jute.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ev++.h" />
     <ClInclude Include="include\ev.h" />
     <ClInclude Include="include\exif.h" />
+    <ClInclude Include="include\exlib\event.h" />
     <ClInclude Include="include\exlib\fiber.h" />
     <ClInclude Include="include\exlib\lockfree.h" />
     <ClInclude Include="include\exlib\thread.h" />
     <ClInclude Include="include\exlib\utils.h" />
+    <ClInclude Include="include\exlib\utils_arm.h" />
+    <ClInclude Include="include\exlib\utils_win.h" />
+    <ClInclude Include="include\exlib\utils_x64.h" />
+    <ClInclude Include="include\exlib\utils_x86.h" />
     <ClInclude Include="include\gd.h" />
     <ClInclude Include="include\gdcache.h" />
     <ClInclude Include="include\gdfonts.h" />
@@ -504,6 +612,18 @@
     <ClInclude Include="include\jmorecfg.h" />
     <ClInclude Include="include\jpegint.h" />
     <ClInclude Include="include\jpeglib.h" />
+    <ClInclude Include="include\leveldb\cache.h" />
+    <ClInclude Include="include\leveldb\comparator.h" />
+    <ClInclude Include="include\leveldb\db.h" />
+    <ClInclude Include="include\leveldb\env.h" />
+    <ClInclude Include="include\leveldb\filter_policy.h" />
+    <ClInclude Include="include\leveldb\iterator.h" />
+    <ClInclude Include="include\leveldb\options.h" />
+    <ClInclude Include="include\leveldb\slice.h" />
+    <ClInclude Include="include\leveldb\status.h" />
+    <ClInclude Include="include\leveldb\table.h" />
+    <ClInclude Include="include\leveldb\table_builder.h" />
+    <ClInclude Include="include\leveldb\write_batch.h" />
     <ClInclude Include="include\lfds.h" />
     <ClInclude Include="include\mongo\bson.h" />
     <ClInclude Include="include\mongo\env.h" />
@@ -524,7 +644,9 @@
     <ClInclude Include="include\polarssl\blowfish.h" />
     <ClInclude Include="include\polarssl\bn_mul.h" />
     <ClInclude Include="include\polarssl\camellia.h" />
+    <ClInclude Include="include\polarssl\ccm.h" />
     <ClInclude Include="include\polarssl\certs.h" />
+    <ClInclude Include="include\polarssl\check_config.h" />
     <ClInclude Include="include\polarssl\cipher.h" />
     <ClInclude Include="include\polarssl\cipher_wrap.h" />
     <ClInclude Include="include\polarssl\compat-1.2.h" />
@@ -577,6 +699,10 @@
     <ClInclude Include="include\polarssl\x509_crt.h" />
     <ClInclude Include="include\polarssl\x509_csr.h" />
     <ClInclude Include="include\polarssl\xtea.h" />
+    <ClInclude Include="include\proto.h" />
+    <ClInclude Include="include\recordio.h" />
+    <ClInclude Include="include\snappy-stubs-public.h" />
+    <ClInclude Include="include\snappy.h" />
     <ClInclude Include="include\sqlite3.h" />
     <ClInclude Include="include\tiff.h" />
     <ClInclude Include="include\tiffio.h" />
@@ -586,15 +712,22 @@
     <ClInclude Include="include\umysql\umysql.h" />
     <ClInclude Include="include\uuid.h" />
     <ClInclude Include="include\v8\v8-debug.h" />
+    <ClInclude Include="include\v8\v8-platform.h" />
     <ClInclude Include="include\v8\v8-profiler.h" />
     <ClInclude Include="include\v8\v8-testing.h" />
     <ClInclude Include="include\v8\v8-util.h" />
     <ClInclude Include="include\v8\v8.h" />
     <ClInclude Include="include\v8\v8config.h" />
     <ClInclude Include="include\v8\v8stdint.h" />
+    <ClInclude Include="include\winconfig.h" />
+    <ClInclude Include="include\winstdint.h" />
     <ClInclude Include="include\win_iconv.h" />
     <ClInclude Include="include\zconf.h" />
     <ClInclude Include="include\zlib.h" />
+    <ClInclude Include="include\zookeeper.h" />
+    <ClInclude Include="include\zookeeper.jute.h" />
+    <ClInclude Include="include\zookeeper_log.h" />
+    <ClInclude Include="include\zookeeper_version.h" />
     <ClInclude Include="src\ev\config.h" />
     <ClInclude Include="src\ev\ev_vars.h" />
     <ClInclude Include="src\ev\ev_wrap.h" />
@@ -626,6 +759,42 @@
     <ClInclude Include="src\jpeg\jpegint.h" />
     <ClInclude Include="src\jpeg\jversion.h" />
     <ClInclude Include="src\jpeg\transupp.h" />
+    <ClInclude Include="src\leveldb\db\builder.h" />
+    <ClInclude Include="src\leveldb\db\dbformat.h" />
+    <ClInclude Include="src\leveldb\db\db_impl.h" />
+    <ClInclude Include="src\leveldb\db\db_iter.h" />
+    <ClInclude Include="src\leveldb\db\filename.h" />
+    <ClInclude Include="src\leveldb\db\log_format.h" />
+    <ClInclude Include="src\leveldb\db\log_reader.h" />
+    <ClInclude Include="src\leveldb\db\log_writer.h" />
+    <ClInclude Include="src\leveldb\db\memtable.h" />
+    <ClInclude Include="src\leveldb\db\skiplist.h" />
+    <ClInclude Include="src\leveldb\db\snapshot.h" />
+    <ClInclude Include="src\leveldb\db\table_cache.h" />
+    <ClInclude Include="src\leveldb\db\version_edit.h" />
+    <ClInclude Include="src\leveldb\db\version_set.h" />
+    <ClInclude Include="src\leveldb\db\write_batch_internal.h" />
+    <ClInclude Include="src\leveldb\port\port.h" />
+    <ClInclude Include="src\leveldb\port\thread_annotations.h" />
+    <ClInclude Include="src\leveldb\table\block.h" />
+    <ClInclude Include="src\leveldb\table\block_builder.h" />
+    <ClInclude Include="src\leveldb\table\filter_block.h" />
+    <ClInclude Include="src\leveldb\table\format.h" />
+    <ClInclude Include="src\leveldb\table\iterator_wrapper.h" />
+    <ClInclude Include="src\leveldb\table\merger.h" />
+    <ClInclude Include="src\leveldb\table\two_level_iterator.h" />
+    <ClInclude Include="src\leveldb\util\arena.h" />
+    <ClInclude Include="src\leveldb\util\coding.h" />
+    <ClInclude Include="src\leveldb\util\crc32c.h" />
+    <ClInclude Include="src\leveldb\util\hash.h" />
+    <ClInclude Include="src\leveldb\util\histogram.h" />
+    <ClInclude Include="src\leveldb\util\logging.h" />
+    <ClInclude Include="src\leveldb\util\mutexlock.h" />
+    <ClInclude Include="src\leveldb\util\posix_logger.h" />
+    <ClInclude Include="src\leveldb\util\random.h" />
+    <ClInclude Include="src\leveldb\util\testharness.h" />
+    <ClInclude Include="src\leveldb\util\testutil.h" />
+    <ClInclude Include="src\leveldb\util\win_logger.h" />
     <ClInclude Include="src\mongo\bcon.h" />
     <ClInclude Include="src\mongo\bson.h" />
     <ClInclude Include="src\mongo\encoding.h" />
@@ -658,6 +827,12 @@
     <ClInclude Include="src\png\pnginfo.h" />
     <ClInclude Include="src\png\pngpriv.h" />
     <ClInclude Include="src\png\pngstruct.h" />
+    <ClInclude Include="src\snappy\snappy-c.h" />
+    <ClInclude Include="src\snappy\snappy-internal.h" />
+    <ClInclude Include="src\snappy\snappy-sinksource.h" />
+    <ClInclude Include="src\snappy\snappy-stubs-internal.h" />
+    <ClInclude Include="src\snappy\snappy-stubs-public.h" />
+    <ClInclude Include="src\snappy\snappy.h" />
     <ClInclude Include="src\sqlite\sqlite3.h" />
     <ClInclude Include="src\tiff\t4.h" />
     <ClInclude Include="src\tiff\tiff.h" />
@@ -689,6 +864,7 @@
     <ClInclude Include="src\uuid\uuid_ui64.h" />
     <ClInclude Include="src\uuid\uuid_vers.h" />
     <ClInclude Include="src\v8\include\v8-debug.h" />
+    <ClInclude Include="src\v8\include\v8-platform.h" />
     <ClInclude Include="src\v8\include\v8-profiler.h" />
     <ClInclude Include="src\v8\include\v8-testing.h" />
     <ClInclude Include="src\v8\include\v8-util.h" />
@@ -703,21 +879,38 @@
     <ClInclude Include="src\v8\src\arguments.h" />
     <ClInclude Include="src\v8\src\assembler.h" />
     <ClInclude Include="src\v8\src\assert-scope.h" />
+    <ClInclude Include="src\v8\src\ast-value-factory.h" />
     <ClInclude Include="src\v8\src\ast.h" />
     <ClInclude Include="src\v8\src\base\atomicops.h" />
     <ClInclude Include="src\v8\src\base\atomicops_internals_arm64_gcc.h" />
     <ClInclude Include="src\v8\src\base\atomicops_internals_arm_gcc.h" />
     <ClInclude Include="src\v8\src\base\atomicops_internals_atomicword_compat.h" />
     <ClInclude Include="src\v8\src\base\atomicops_internals_mac.h" />
+    <ClInclude Include="src\v8\src\base\atomicops_internals_mips64_gcc.h" />
     <ClInclude Include="src\v8\src\base\atomicops_internals_mips_gcc.h" />
     <ClInclude Include="src\v8\src\base\atomicops_internals_tsan.h" />
     <ClInclude Include="src\v8\src\base\atomicops_internals_x86_gcc.h" />
     <ClInclude Include="src\v8\src\base\atomicops_internals_x86_msvc.h" />
     <ClInclude Include="src\v8\src\base\build_config.h" />
+    <ClInclude Include="src\v8\src\base\cpu.h" />
     <ClInclude Include="src\v8\src\base\lazy-instance.h" />
+    <ClInclude Include="src\v8\src\base\logging.h" />
     <ClInclude Include="src\v8\src\base\macros.h" />
     <ClInclude Include="src\v8\src\base\once.h" />
+    <ClInclude Include="src\v8\src\base\platform\condition-variable.h" />
+    <ClInclude Include="src\v8\src\base\platform\elapsed-timer.h" />
+    <ClInclude Include="src\v8\src\base\platform\mutex.h" />
+    <ClInclude Include="src\v8\src\base\platform\platform.h" />
+    <ClInclude Include="src\v8\src\base\platform\semaphore.h" />
+    <ClInclude Include="src\v8\src\base\platform\time.h" />
+    <ClInclude Include="src\v8\src\base\qnx-math.h" />
+    <ClInclude Include="src\v8\src\base\safe_conversions.h" />
+    <ClInclude Include="src\v8\src\base\safe_conversions_impl.h" />
+    <ClInclude Include="src\v8\src\base\safe_math.h" />
+    <ClInclude Include="src\v8\src\base\safe_math_impl.h" />
+    <ClInclude Include="src\v8\src\base\utils\random-number-generator.h" />
     <ClInclude Include="src\v8\src\base\win32-headers.h" />
+    <ClInclude Include="src\v8\src\base\win32-math.h" />
     <ClInclude Include="src\v8\src\bignum-dtoa.h" />
     <ClInclude Include="src\v8\src\bignum.h" />
     <ClInclude Include="src\v8\src\bootstrapper.h" />
@@ -735,13 +928,75 @@
     <ClInclude Include="src\v8\src\compilation-cache.h" />
     <ClInclude Include="src\v8\src\compiler-intrinsics.h" />
     <ClInclude Include="src\v8\src\compiler.h" />
+    <ClInclude Include="src\v8\src\compiler\arm64\instruction-codes-arm64.h" />
+    <ClInclude Include="src\v8\src\compiler\arm\instruction-codes-arm.h" />
+    <ClInclude Include="src\v8\src\compiler\ast-graph-builder.h" />
+    <ClInclude Include="src\v8\src\compiler\code-generator-impl.h" />
+    <ClInclude Include="src\v8\src\compiler\code-generator.h" />
+    <ClInclude Include="src\v8\src\compiler\common-node-cache.h" />
+    <ClInclude Include="src\v8\src\compiler\common-operator.h" />
+    <ClInclude Include="src\v8\src\compiler\control-builders.h" />
+    <ClInclude Include="src\v8\src\compiler\frame.h" />
+    <ClInclude Include="src\v8\src\compiler\gap-resolver.h" />
+    <ClInclude Include="src\v8\src\compiler\generic-algorithm-inl.h" />
+    <ClInclude Include="src\v8\src\compiler\generic-algorithm.h" />
+    <ClInclude Include="src\v8\src\compiler\generic-graph.h" />
+    <ClInclude Include="src\v8\src\compiler\generic-node-inl.h" />
+    <ClInclude Include="src\v8\src\compiler\generic-node.h" />
+    <ClInclude Include="src\v8\src\compiler\graph-builder.h" />
+    <ClInclude Include="src\v8\src\compiler\graph-inl.h" />
+    <ClInclude Include="src\v8\src\compiler\graph-reducer.h" />
+    <ClInclude Include="src\v8\src\compiler\graph-replay.h" />
+    <ClInclude Include="src\v8\src\compiler\graph-visualizer.h" />
+    <ClInclude Include="src\v8\src\compiler\graph.h" />
+    <ClInclude Include="src\v8\src\compiler\ia32\instruction-codes-ia32.h" />
+    <ClInclude Include="src\v8\src\compiler\instruction-codes.h" />
+    <ClInclude Include="src\v8\src\compiler\instruction-selector-impl.h" />
+    <ClInclude Include="src\v8\src\compiler\instruction-selector.h" />
+    <ClInclude Include="src\v8\src\compiler\instruction.h" />
+    <ClInclude Include="src\v8\src\compiler\js-context-specialization.h" />
+    <ClInclude Include="src\v8\src\compiler\js-generic-lowering.h" />
+    <ClInclude Include="src\v8\src\compiler\js-graph.h" />
+    <ClInclude Include="src\v8\src\compiler\js-operator.h" />
+    <ClInclude Include="src\v8\src\compiler\js-typed-lowering.h" />
+    <ClInclude Include="src\v8\src\compiler\linkage-impl.h" />
+    <ClInclude Include="src\v8\src\compiler\linkage.h" />
+    <ClInclude Include="src\v8\src\compiler\lowering-builder.h" />
+    <ClInclude Include="src\v8\src\compiler\machine-node-factory.h" />
+    <ClInclude Include="src\v8\src\compiler\machine-operator-reducer.h" />
+    <ClInclude Include="src\v8\src\compiler\machine-operator.h" />
+    <ClInclude Include="src\v8\src\compiler\node-aux-data-inl.h" />
+    <ClInclude Include="src\v8\src\compiler\node-aux-data.h" />
+    <ClInclude Include="src\v8\src\compiler\node-cache.h" />
+    <ClInclude Include="src\v8\src\compiler\node-matchers.h" />
+    <ClInclude Include="src\v8\src\compiler\node-properties-inl.h" />
+    <ClInclude Include="src\v8\src\compiler\node-properties.h" />
+    <ClInclude Include="src\v8\src\compiler\node.h" />
+    <ClInclude Include="src\v8\src\compiler\opcodes.h" />
+    <ClInclude Include="src\v8\src\compiler\operator-properties-inl.h" />
+    <ClInclude Include="src\v8\src\compiler\operator-properties.h" />
+    <ClInclude Include="src\v8\src\compiler\operator.h" />
+    <ClInclude Include="src\v8\src\compiler\phi-reducer.h" />
+    <ClInclude Include="src\v8\src\compiler\pipeline.h" />
+    <ClInclude Include="src\v8\src\compiler\raw-machine-assembler.h" />
+    <ClInclude Include="src\v8\src\compiler\register-allocator.h" />
+    <ClInclude Include="src\v8\src\compiler\representation-change.h" />
+    <ClInclude Include="src\v8\src\compiler\schedule.h" />
+    <ClInclude Include="src\v8\src\compiler\scheduler.h" />
+    <ClInclude Include="src\v8\src\compiler\simplified-lowering.h" />
+    <ClInclude Include="src\v8\src\compiler\simplified-node-factory.h" />
+    <ClInclude Include="src\v8\src\compiler\simplified-operator.h" />
+    <ClInclude Include="src\v8\src\compiler\source-position.h" />
+    <ClInclude Include="src\v8\src\compiler\structured-machine-assembler.h" />
+    <ClInclude Include="src\v8\src\compiler\typer.h" />
+    <ClInclude Include="src\v8\src\compiler\verifier.h" />
+    <ClInclude Include="src\v8\src\compiler\x64\instruction-codes-x64.h" />
     <ClInclude Include="src\v8\src\contexts.h" />
     <ClInclude Include="src\v8\src\conversions-inl.h" />
     <ClInclude Include="src\v8\src\conversions.h" />
     <ClInclude Include="src\v8\src\counters.h" />
     <ClInclude Include="src\v8\src\cpu-profiler-inl.h" />
     <ClInclude Include="src\v8\src\cpu-profiler.h" />
-    <ClInclude Include="src\v8\src\cpu.h" />
     <ClInclude Include="src\v8\src\data-flow.h" />
     <ClInclude Include="src\v8\src\date.h" />
     <ClInclude Include="src\v8\src\dateparser-inl.h" />
@@ -780,11 +1035,21 @@
     <ClInclude Include="src\v8\src\handles-inl.h" />
     <ClInclude Include="src\v8\src\handles.h" />
     <ClInclude Include="src\v8\src\hashmap.h" />
-    <ClInclude Include="src\v8\src\heap-inl.h" />
     <ClInclude Include="src\v8\src\heap-profiler.h" />
     <ClInclude Include="src\v8\src\heap-snapshot-generator-inl.h" />
     <ClInclude Include="src\v8\src\heap-snapshot-generator.h" />
-    <ClInclude Include="src\v8\src\heap.h" />
+    <ClInclude Include="src\v8\src\heap\gc-tracer.h" />
+    <ClInclude Include="src\v8\src\heap\heap-inl.h" />
+    <ClInclude Include="src\v8\src\heap\heap.h" />
+    <ClInclude Include="src\v8\src\heap\incremental-marking-inl.h" />
+    <ClInclude Include="src\v8\src\heap\incremental-marking.h" />
+    <ClInclude Include="src\v8\src\heap\mark-compact-inl.h" />
+    <ClInclude Include="src\v8\src\heap\mark-compact.h" />
+    <ClInclude Include="src\v8\src\heap\objects-visiting-inl.h" />
+    <ClInclude Include="src\v8\src\heap\objects-visiting.h" />
+    <ClInclude Include="src\v8\src\heap\spaces-inl.h" />
+    <ClInclude Include="src\v8\src\heap\spaces.h" />
+    <ClInclude Include="src\v8\src\heap\sweeper-thread.h" />
     <ClInclude Include="src\v8\src\hydrogen-alias-analysis.h" />
     <ClInclude Include="src\v8\src\hydrogen-bce.h" />
     <ClInclude Include="src\v8\src\hydrogen-bch.h" />
@@ -826,8 +1091,6 @@
     <ClInclude Include="src\v8\src\ic-inl.h" />
     <ClInclude Include="src\v8\src\ic.h" />
     <ClInclude Include="src\v8\src\icu_util.h" />
-    <ClInclude Include="src\v8\src\incremental-marking-inl.h" />
-    <ClInclude Include="src\v8\src\incremental-marking.h" />
     <ClInclude Include="src\v8\src\interface.h" />
     <ClInclude Include="src\v8\src\interpreter-irregexp.h" />
     <ClInclude Include="src\v8\src\isolate-inl.h" />
@@ -841,31 +1104,25 @@
     <ClInclude Include="src\v8\src\lithium-allocator-inl.h" />
     <ClInclude Include="src\v8\src\lithium-allocator.h" />
     <ClInclude Include="src\v8\src\lithium-codegen.h" />
+    <ClInclude Include="src\v8\src\lithium-inl.h" />
     <ClInclude Include="src\v8\src\lithium.h" />
     <ClInclude Include="src\v8\src\liveedit.h" />
     <ClInclude Include="src\v8\src\log-inl.h" />
     <ClInclude Include="src\v8\src\log-utils.h" />
     <ClInclude Include="src\v8\src\log.h" />
+    <ClInclude Include="src\v8\src\lookup-inl.h" />
     <ClInclude Include="src\v8\src\lookup.h" />
     <ClInclude Include="src\v8\src\macro-assembler.h" />
-    <ClInclude Include="src\v8\src\mark-compact-inl.h" />
-    <ClInclude Include="src\v8\src\mark-compact.h" />
     <ClInclude Include="src\v8\src\messages.h" />
     <ClInclude Include="src\v8\src\misc-intrinsics.h" />
     <ClInclude Include="src\v8\src\msan.h" />
     <ClInclude Include="src\v8\src\natives.h" />
     <ClInclude Include="src\v8\src\objects-inl.h" />
-    <ClInclude Include="src\v8\src\objects-visiting-inl.h" />
-    <ClInclude Include="src\v8\src\objects-visiting.h" />
     <ClInclude Include="src\v8\src\objects.h" />
     <ClInclude Include="src\v8\src\optimizing-compiler-thread.h" />
+    <ClInclude Include="src\v8\src\ostreams.h" />
     <ClInclude Include="src\v8\src\parser.h" />
-    <ClInclude Include="src\v8\src\platform.h" />
-    <ClInclude Include="src\v8\src\platform\condition-variable.h" />
-    <ClInclude Include="src\v8\src\platform\elapsed-timer.h" />
-    <ClInclude Include="src\v8\src\platform\mutex.h" />
-    <ClInclude Include="src\v8\src\platform\semaphore.h" />
-    <ClInclude Include="src\v8\src\platform\time.h" />
+    <ClInclude Include="src\v8\src\perf-jit.h" />
     <ClInclude Include="src\v8\src\preparse-data-format.h" />
     <ClInclude Include="src\v8\src\preparse-data.h" />
     <ClInclude Include="src\v8\src\preparser.h" />
@@ -875,7 +1132,7 @@
     <ClInclude Include="src\v8\src\property-details-inl.h" />
     <ClInclude Include="src\v8\src\property-details.h" />
     <ClInclude Include="src\v8\src\property.h" />
-    <ClInclude Include="src\v8\src\qnx-math.h" />
+    <ClInclude Include="src\v8\src\prototype.h" />
     <ClInclude Include="src\v8\src\regexp-macro-assembler-irregexp-inl.h" />
     <ClInclude Include="src\v8\src\regexp-macro-assembler-irregexp.h" />
     <ClInclude Include="src\v8\src\regexp-macro-assembler-tracer.h" />
@@ -894,9 +1151,8 @@
     <ClInclude Include="src\v8\src\simulator.h" />
     <ClInclude Include="src\v8\src\small-pointer-list.h" />
     <ClInclude Include="src\v8\src\smart-pointers.h" />
+    <ClInclude Include="src\v8\src\snapshot-source-sink.h" />
     <ClInclude Include="src\v8\src\snapshot.h" />
-    <ClInclude Include="src\v8\src\spaces-inl.h" />
-    <ClInclude Include="src\v8\src\spaces.h" />
     <ClInclude Include="src\v8\src\splay-tree-inl.h" />
     <ClInclude Include="src\v8\src\splay-tree.h" />
     <ClInclude Include="src\v8\src\store-buffer-inl.h" />
@@ -905,12 +1161,12 @@
     <ClInclude Include="src\v8\src\string-stream.h" />
     <ClInclude Include="src\v8\src\strtod.h" />
     <ClInclude Include="src\v8\src\stub-cache.h" />
-    <ClInclude Include="src\v8\src\sweeper-thread.h" />
+    <ClInclude Include="src\v8\src\third_party\fdlibm\fdlibm.h" />
+    <ClInclude Include="src\v8\src\third_party\kernel\tools\perf\util\jitdump.h" />
     <ClInclude Include="src\v8\src\third_party\valgrind\valgrind.h" />
     <ClInclude Include="src\v8\src\token.h" />
     <ClInclude Include="src\v8\src\transitions-inl.h" />
     <ClInclude Include="src\v8\src\transitions.h" />
-    <ClInclude Include="src\v8\src\trig-table.h" />
     <ClInclude Include="src\v8\src\type-info.h" />
     <ClInclude Include="src\v8\src\types-inl.h" />
     <ClInclude Include="src\v8\src\types.h" />
@@ -923,9 +1179,7 @@
     <ClInclude Include="src\v8\src\uri.h" />
     <ClInclude Include="src\v8\src\utils-inl.h" />
     <ClInclude Include="src\v8\src\utils.h" />
-    <ClInclude Include="src\v8\src\utils\random-number-generator.h" />
     <ClInclude Include="src\v8\src\v8.h" />
-    <ClInclude Include="src\v8\src\v8checks.h" />
     <ClInclude Include="src\v8\src\v8memory.h" />
     <ClInclude Include="src\v8\src\v8threads.h" />
     <ClInclude Include="src\v8\src\variables.h" />
@@ -933,7 +1187,6 @@
     <ClInclude Include="src\v8\src\version.h" />
     <ClInclude Include="src\v8\src\vm-state-inl.h" />
     <ClInclude Include="src\v8\src\vm-state.h" />
-    <ClInclude Include="src\v8\src\win32-math.h" />
     <ClInclude Include="src\v8\src\x64\assembler-x64-inl.h" />
     <ClInclude Include="src\v8\src\x64\assembler-x64.h" />
     <ClInclude Include="src\v8\src\x64\code-stubs-x64.h" />
@@ -960,6 +1213,13 @@
     <ClInclude Include="src\zlib\zconf.h" />
     <ClInclude Include="src\zlib\zlib.h" />
     <ClInclude Include="src\zlib\zutil.h" />
+    <ClInclude Include="src\zookeeper\config.h" />
+    <ClInclude Include="src\zookeeper\hashtable\hashtable.h" />
+    <ClInclude Include="src\zookeeper\hashtable\hashtable_itr.h" />
+    <ClInclude Include="src\zookeeper\hashtable\hashtable_private.h" />
+    <ClInclude Include="src\zookeeper\winport.h" />
+    <ClInclude Include="src\zookeeper\zk_adaptor.h" />
+    <ClInclude Include="src\zookeeper\zk_hashtable.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="src\exlib\fiber\fb_switch.asm">
@@ -1046,8 +1306,8 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;NOMINMAX;SQLITE_ENABLE_FTS4;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;$(ProjectDir)\src\leveldb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -1066,8 +1326,8 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;NOMINMAX;SQLITE_ENABLE_FTS4;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;$(ProjectDir)\src\leveldb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -1088,8 +1348,8 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;NDEBUG;NOMINMAX;SQLITE_ENABLE_FTS4;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;$(ProjectDir)\src\leveldb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -1114,8 +1374,8 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;NDEBUG;NOMINMAX;SQLITE_ENABLE_FTS4;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;$(ProjectDir)\src\leveldb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
       <WholeProgramOptimization>false</WholeProgramOptimization>

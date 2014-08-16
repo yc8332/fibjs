@@ -8,6 +8,7 @@ var mq = require('mq');
 
 describe("buffered stream", function() {
 	var s;
+	var f;
 
 	before(function() {
 		s = '0123456789\r\n';
@@ -16,7 +17,7 @@ describe("buffered stream", function() {
 			s = s + s;
 
 		var f = fs.open("test0000", 'w');
-		f.write(new Buffer(s));
+		f.write(s);
 		f.close();
 	});
 
@@ -73,6 +74,7 @@ describe("buffered stream", function() {
 		r.EOL = '\r\n';
 
 		var n = 0;
+		var s1;
 
 		while ((s1 = r.readLine()) !== null) {
 			assert.equal('0123456789', s1);
@@ -98,7 +100,7 @@ describe("buffered stream", function() {
 		var r = new io.BufferedStream(f);
 
 		for (var i = 0; i < 1000; i++)
-			r.writePacket(new Buffer(s.substring(0, i)));
+			r.writePacket(s.substring(0, i));
 
 		f.rewind();
 		for (var i = 0; i < 1000; i++)
@@ -112,7 +114,7 @@ describe("buffered stream", function() {
 		var m = new mq.PacketMessage();
 
 		for (var i = 0; i < 1000; i++) {
-			m.body.write(new Buffer(s.substring(0, i)));
+			m.body.write(s.substring(0, i));
 			m.sendTo(f);
 			m.clear();
 		}
@@ -132,7 +134,7 @@ describe("buffered stream", function() {
 		var r = new io.BufferedStream(f);
 
 		for (var i = 1; i < 1000; i++)
-			r.writePacket(new Buffer(s.substring(0, i)));
+			r.writePacket(s.substring(0, i));
 
 		var m = new mq.PacketMessage();
 
@@ -155,7 +157,7 @@ describe("buffered stream", function() {
 	it('readPacket limit', function() {
 		var r = new io.BufferedStream(f);
 		f.rewind();
-		r.writePacket(new Buffer(s.substring(0, 65567)));
+		r.writePacket(s.substring(0, 65567));
 
 		f.rewind();
 		assert.equal(r.readPacket(65567).toString(), s.substring(0, 65567));
@@ -165,6 +167,35 @@ describe("buffered stream", function() {
 		assert.throws(function() {
 			r.readPacket(65566);
 		});
+
+		f.close();
+	});
+
+	it("charset", function() {
+		fs.unlink("test0000");
+
+		f = fs.open("test0000", "w+");
+		var r = new io.BufferedStream(f);
+		r.EOL = '\r\n';
+
+		assert.equal(r.charset, "utf-8");
+
+		f.write("哈哈哈\r\n");
+		f.rewind();
+		assert.equal(r.readLine(), "哈哈哈");
+
+		r.charset = "gbk";
+
+		f.rewind();
+		f.truncate(0);
+		r.writeText("嘿嘿嘿");
+		r.writeLine("哈哈哈");
+		f.rewind();
+		assert.equal(f.readAll().toString("gbk"), "嘿嘿嘿哈哈哈\r\n");
+
+		f.rewind();
+		assert.equal(r.readText(6), "嘿嘿嘿");
+		assert.equal(r.readLine(), "哈哈哈");
 
 		f.close();
 	});

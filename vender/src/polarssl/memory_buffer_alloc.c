@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
 
@@ -47,6 +51,11 @@
 #else
 #define polarssl_fprintf fprintf
 #endif
+
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
 
 #define MAGIC1       0xFF00AA55
 #define MAGIC2       0xEE119966
@@ -277,7 +286,8 @@ static void *buffer_alloc_malloc( size_t len )
 
     // Found location, split block if > memory_header + 4 room left
     //
-    if( cur->size - len < sizeof(memory_header) + POLARSSL_MEMORY_ALIGN_MULTIPLE )
+    if( cur->size - len < sizeof(memory_header) +
+                          POLARSSL_MEMORY_ALIGN_MULTIPLE )
     {
         cur->alloc = 1;
 
@@ -296,7 +306,7 @@ static void *buffer_alloc_malloc( size_t len )
 
 #if defined(POLARSSL_MEMORY_DEBUG)
         heap.total_used += cur->size;
-        if( heap.total_used > heap.maximum_used)
+        if( heap.total_used > heap.maximum_used )
             heap.maximum_used = heap.total_used;
 #endif
 #if defined(POLARSSL_MEMORY_BACKTRACE)
@@ -308,7 +318,7 @@ static void *buffer_alloc_malloc( size_t len )
         if( ( heap.verify & MEMORY_VERIFY_ALLOC ) && verify_chain() != 0 )
             exit( 1 );
 
-        return ( (unsigned char *) cur ) + sizeof(memory_header);
+        return( ( (unsigned char *) cur ) + sizeof(memory_header) );
     }
 
     p = ( (unsigned char *) cur ) + sizeof(memory_header) + len;
@@ -351,7 +361,7 @@ static void *buffer_alloc_malloc( size_t len )
     if( heap.header_count > heap.maximum_header_count )
         heap.maximum_header_count = heap.header_count;
     heap.total_used += cur->size;
-    if( heap.total_used > heap.maximum_used)
+    if( heap.total_used > heap.maximum_used )
         heap.maximum_used = heap.total_used;
 #endif
 #if defined(POLARSSL_MEMORY_BACKTRACE)
@@ -363,7 +373,7 @@ static void *buffer_alloc_malloc( size_t len )
     if( ( heap.verify & MEMORY_VERIFY_ALLOC ) && verify_chain() != 0 )
         exit( 1 );
 
-    return ( (unsigned char *) cur ) + sizeof(memory_header);
+    return( ( (unsigned char *) cur ) + sizeof(memory_header) );
 }
 
 static void buffer_alloc_free( void *ptr )
@@ -535,7 +545,7 @@ static void buffer_alloc_free_mutexed( void *ptr )
     buffer_alloc_free( ptr );
     polarssl_mutex_unlock( &heap.mutex );
 }
-#endif
+#endif /* POLARSSL_THREADING_C */
 
 int memory_buffer_alloc_init( unsigned char *buf, size_t len )
 {
@@ -549,6 +559,13 @@ int memory_buffer_alloc_init( unsigned char *buf, size_t len )
 #else
     platform_set_malloc_free( buffer_alloc_malloc, buffer_alloc_free );
 #endif
+
+    if( (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE )
+    {
+        buf += POLARSSL_MEMORY_ALIGN_MULTIPLE
+             - (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE;
+        len -= (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE;
+    }
 
     heap.buf = buf;
     heap.len = len;
@@ -566,7 +583,7 @@ void memory_buffer_alloc_free()
 #if defined(POLARSSL_THREADING_C)
     polarssl_mutex_free( &heap.mutex );
 #endif
-    memset( &heap, 0, sizeof(buffer_alloc_ctx) );
+    polarssl_zeroize( &heap, sizeof(buffer_alloc_ctx) );
 }
 
 #endif /* POLARSSL_MEMORY_BUFFER_ALLOC_C */

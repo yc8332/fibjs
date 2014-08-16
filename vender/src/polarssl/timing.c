@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
@@ -59,10 +63,10 @@ struct _hr_time
     struct timeval start;
 };
 
-#endif
+#endif /* _WIN32 && !EFIX64 && !EFI32 */
 
 #if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
-    (defined(_MSC_VER) && defined(_M_IX86)) || defined(__WATCOMC__)
+    ( defined(_MSC_VER) && defined(_M_IX86) ) || defined(__WATCOMC__)
 
 #define POLARSSL_HAVE_HARDCLOCK
 
@@ -73,7 +77,8 @@ unsigned long hardclock( void )
     __asm   mov  [tsc], eax
     return( tsc );
 }
-#endif
+#endif /* !POLARSSL_HAVE_HARDCLOCK && POLARSSL_HAVE_ASM &&
+          ( _MSC_VER && _M_IX86 ) || __WATCOMC__ */
 
 #if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
     defined(__GNUC__) && defined(__i386__)
@@ -86,10 +91,11 @@ unsigned long hardclock( void )
     asm volatile( "rdtsc" : "=a" (lo), "=d" (hi) );
     return( lo );
 }
-#endif
+#endif /* !POLARSSL_HAVE_HARDCLOCK && POLARSSL_HAVE_ASM &&
+          __GNUC__ && __i386__ */
 
 #if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
-    defined(__GNUC__) && (defined(__amd64__) || defined(__x86_64__))
+    defined(__GNUC__) && ( defined(__amd64__) || defined(__x86_64__) )
 
 #define POLARSSL_HAVE_HARDCLOCK
 
@@ -97,12 +103,13 @@ unsigned long hardclock( void )
 {
     unsigned long lo, hi;
     asm volatile( "rdtsc" : "=a" (lo), "=d" (hi) );
-    return( lo | (hi << 32) );
+    return( lo | ( hi << 32 ) );
 }
-#endif
+#endif /* !POLARSSL_HAVE_HARDCLOCK && POLARSSL_HAVE_ASM &&
+          __GNUC__ && ( __amd64__ || __x86_64__ ) */
 
 #if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
-    defined(__GNUC__) && (defined(__powerpc__) || defined(__ppc__))
+    defined(__GNUC__) && ( defined(__powerpc__) || defined(__ppc__) )
 
 #define POLARSSL_HAVE_HARDCLOCK
 
@@ -120,7 +127,8 @@ unsigned long hardclock( void )
 
     return( tbl );
 }
-#endif
+#endif /* !POLARSSL_HAVE_HARDCLOCK && POLARSSL_HAVE_ASM &&
+          __GNUC__ && ( __powerpc__ || __ppc__ ) */
 
 #if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
     defined(__GNUC__) && defined(__sparc64__)
@@ -136,8 +144,9 @@ unsigned long hardclock( void )
     asm volatile( "rdpr %%tick, %0;" : "=&r" (tick) );
     return( tick );
 }
-#endif
-#endif
+#endif /* __OpenBSD__ */
+#endif /* !POLARSSL_HAVE_HARDCLOCK && POLARSSL_HAVE_ASM &&
+          __GNUC__ && __sparc64__ */
 
 #if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
     defined(__GNUC__) && defined(__sparc__) && !defined(__sparc64__)
@@ -151,7 +160,8 @@ unsigned long hardclock( void )
     asm volatile( "mov   %%g1, %0" : "=r" (tick) );
     return( tick );
 }
-#endif
+#endif /* !POLARSSL_HAVE_HARDCLOCK && POLARSSL_HAVE_ASM &&
+          __GNUC__ && __sparc__ && !__sparc64__ */
 
 #if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&      \
     defined(__GNUC__) && defined(__alpha__)
@@ -164,7 +174,8 @@ unsigned long hardclock( void )
     asm volatile( "rpcc %0" : "=r" (cc) );
     return( cc & 0xFFFFFFFF );
 }
-#endif
+#endif /* !POLARSSL_HAVE_HARDCLOCK && POLARSSL_HAVE_ASM &&
+          __GNUC__ && __alpha__ */
 
 #if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&      \
     defined(__GNUC__) && defined(__ia64__)
@@ -177,7 +188,8 @@ unsigned long hardclock( void )
     asm volatile( "mov %0 = ar.itc" : "=r" (itc) );
     return( itc );
 }
-#endif
+#endif /* !POLARSSL_HAVE_HARDCLOCK && POLARSSL_HAVE_ASM &&
+          __GNUC__ && __ia64__ */
 
 #if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(_MSC_VER) && \
     !defined(EFIX64) && !defined(EFI32)
@@ -190,9 +202,9 @@ unsigned long hardclock( void )
 
     QueryPerformanceCounter( &offset );
 
-    return (unsigned long)( offset.QuadPart );
+    return( (unsigned long)( offset.QuadPart ) );
 }
-#endif
+#endif /* !POLARSSL_HAVE_HARDCLOCK && _MSC_VER && !EFIX64 && !EFI32 */
 
 #if !defined(POLARSSL_HAVE_HARDCLOCK)
 
@@ -215,7 +227,7 @@ unsigned long hardclock( void )
     return( ( tv_cur.tv_sec  - tv_init.tv_sec  ) * 1000000
           + ( tv_cur.tv_usec - tv_init.tv_usec ) );
 }
-#endif
+#endif /* !POLARSSL_HAVE_HARDCLOCK */
 
 volatile int alarmed = 0;
 
@@ -325,6 +337,25 @@ void m_sleep( int milliseconds )
 #endif
 
 /*
+ * Busy-waits for the given number of milliseconds.
+ * Used for testing hardclock.
+ */
+static void busy_msleep( unsigned long msec )
+{
+    struct hr_time hires;
+    unsigned long i = 0; /* for busy-waiting */
+    volatile unsigned long j; /* to prevent optimisation */
+
+    (void) get_timer( &hires, 1 );
+
+    while( get_timer( &hires, 0 ) < msec )
+        i++;
+
+    j = i;
+    (void) j;
+}
+
+/*
  * Checkup routine
  *
  * Warning: this is work in progress, some tests may not be reliable enough
@@ -337,8 +368,8 @@ int timing_self_test( int verbose )
     int hardfail;
     struct hr_time hires;
 
-    if( verbose != 0)
-        polarssl_printf( "  TIMING tests warning: will take some time!\n" );
+    if( verbose != 0 )
+        polarssl_printf( "  TIMING tests note: will take some time!\n" );
 
     if( verbose != 0 )
         polarssl_printf( "  TIMING test #1 (m_sleep   / get_timer): " );
@@ -389,7 +420,7 @@ int timing_self_test( int verbose )
         polarssl_printf( "passed\n" );
 
     if( verbose != 0 )
-        polarssl_printf( "  TIMING test #3 (hardclock / m_sleep  ): " );
+        polarssl_printf( "  TIMING test #3 (hardclock / get_timer): " );
 
     /*
      * Allow one failure for possible counter wrapping.
@@ -408,15 +439,17 @@ hard_test:
     }
 
     /* Get a reference ratio cycles/ms */
+    millisecs = 1;
     cycles = hardclock();
-    m_sleep( 1 );
+    busy_msleep( millisecs );
     cycles = hardclock() - cycles;
-    ratio = cycles / 1;
+    ratio = cycles / millisecs;
 
+    /* Check that the ratio is mostly constant */
     for( millisecs = 2; millisecs <= 4; millisecs++ )
     {
         cycles = hardclock();
-        m_sleep( millisecs );
+        busy_msleep( millisecs );
         cycles = hardclock() - cycles;
 
         /* Allow variation up to 20% */
@@ -430,9 +463,6 @@ hard_test:
 
     if( verbose != 0 )
         polarssl_printf( "passed\n" );
-
-    if( verbose != 0 )
-        polarssl_printf( "\n" );
 
 #if defined(POLARSSL_NET_C)
     if( verbose != 0 )
@@ -457,7 +487,10 @@ hard_test:
 
     if( verbose != 0 )
         polarssl_printf( "passed\n" );
-#endif
+#endif /* POLARSSL_NET_C */
+
+    if( verbose != 0 )
+        polarssl_printf( "\n" );
 
     return( 0 );
 }

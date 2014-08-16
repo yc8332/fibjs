@@ -13,6 +13,17 @@
 namespace fibjs
 {
 
+result_t uuid_base::uuid(const char *s, obj_ptr<uuidValue_base> &retVal)
+{
+    obj_ptr<uuidVar> id = new uuidVar();
+
+    uuid_create(&id->m_uid);
+    uuid_import(id->m_uid, UUID_FMT_STR, s, qstrlen(s));
+    retVal = id;
+
+    return 0;
+}
+
 result_t uuid_base::uuid(Buffer_base *data, obj_ptr<uuidValue_base> &retVal)
 {
     std::string s;
@@ -28,17 +39,6 @@ result_t uuid_base::uuid(Buffer_base *data, obj_ptr<uuidValue_base> &retVal)
     return 0;
 }
 
-result_t uuid_base::uuid(const char *s, obj_ptr<uuidValue_base> &retVal)
-{
-    obj_ptr<uuidVar> id = new uuidVar();
-
-    uuid_create(&id->m_uid);
-    uuid_import(id->m_uid, UUID_FMT_STR, s, qstrlen(s));
-    retVal = id;
-
-    return 0;
-}
-
 static uuid_st *s_ns[4];
 static const char *s_ns_str[4] =
 { "ns:DNS", "ns:URL", "ns:OID", "ns:X500" };
@@ -47,7 +47,7 @@ result_t makeUUID(int32_t vers, int32_t ns, const char *name,
                   obj_ptr<uuidValue_base> &retVal)
 {
     if (ns < uuid_base::_DNS || ns > uuid_base::_X509)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     obj_ptr<uuidVar> id = new uuidVar();
 

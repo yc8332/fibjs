@@ -12,7 +12,7 @@
 namespace fibjs
 {
 
-result_t Trigger_base::_new(obj_ptr<Trigger_base> &retVal)
+result_t Trigger_base::_new(obj_ptr<Trigger_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new Trigger();
     return 0;
@@ -112,7 +112,7 @@ inline result_t _map(object_base *o, v8::Local<v8::Object> m,
                 (o->*fn)(*v8::String::Utf8Value(k),
                          v8::Local<v8::Function>::Cast(v));
             else
-                return CALL_E_BADVARTYPE;
+                return CHECK_ERROR(CALL_E_BADVARTYPE);
         }
     }
 

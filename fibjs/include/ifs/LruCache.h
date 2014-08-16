@@ -1,6 +1,7 @@
 /***************************************************************************
- *   Copyright (C) 2012 by Leo Hoo                                         *
- *   lion@9465.net                                                         *
+ *                                                                         *
+ *   This file was automatically generated using idlc.js                   *
+ *   PLEASE DO NOT EDIT!!!!                                                *
  *                                                                         *
  ***************************************************************************/
 
@@ -20,11 +21,12 @@ class LruCache_base : public object_base
 {
 public:
 	// LruCache_base
-	static result_t _new(int32_t size, int32_t timeout, obj_ptr<LruCache_base>& retVal);
+	static result_t _new(int32_t size, int32_t timeout, obj_ptr<LruCache_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_size(int32_t& retVal) = 0;
 	virtual result_t clear() = 0;
 	virtual result_t has(const char* name, bool& retVal) = 0;
 	virtual result_t get(const char* name, v8::Local<v8::Value>& retVal) = 0;
+	virtual result_t get(const char* name, v8::Local<v8::Function> updater, v8::Local<v8::Value>& retVal) = 0;
 	virtual result_t set(const char* name, v8::Local<v8::Value> value) = 0;
 	virtual result_t put(const char* name, v8::Local<v8::Value> value) = 0;
 	virtual result_t put(v8::Local<v8::Object> map) = 0;
@@ -99,7 +101,7 @@ namespace fibjs
 		ARG(int32_t, 0);
 		OPT_ARG(int32_t, 1, 0);
 
-		hr = _new(v0, v1, vr);
+		hr = _new(v0, v1, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}
@@ -138,6 +140,13 @@ namespace fibjs
 		ARG(arg_string, 0);
 
 		hr = pInst->get(v0, vr);
+
+		METHOD_OVER(2, 2);
+
+		ARG(arg_string, 0);
+		ARG(v8::Local<v8::Function>, 1);
+
+		hr = pInst->get(v0, v1, vr);
 
 		METHOD_RETURN();
 	}

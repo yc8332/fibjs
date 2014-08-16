@@ -28,7 +28,11 @@
  *  http://csrc.nist.gov/publications/nistpubs/800-90/SP800-90revised_March2007.pdf
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_CTR_DRBG_C)
 
@@ -43,6 +47,11 @@
 #else
 #define polarssl_printf printf
 #endif
+
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
 
 /*
  * Non-public function wrapped by ctr_crbg_init(). Necessary to allow NIST
@@ -61,6 +70,8 @@ int ctr_drbg_init_entropy_len(
 
     memset( ctx, 0, sizeof(ctr_drbg_context) );
     memset( key, 0, CTR_DRBG_KEYSIZE );
+
+    aes_init( &ctx->aes_ctx );
 
     ctx->f_entropy = f_entropy;
     ctx->p_entropy = p_entropy;
@@ -87,6 +98,15 @@ int ctr_drbg_init( ctr_drbg_context *ctx,
 {
     return( ctr_drbg_init_entropy_len( ctx, f_entropy, p_entropy, custom, len,
                                        CTR_DRBG_ENTROPY_LEN ) );
+}
+
+void ctr_drbg_free( ctr_drbg_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    aes_free( &ctx->aes_ctx );
+    polarssl_zeroize( ctx, sizeof( ctr_drbg_context ) );
 }
 
 void ctr_drbg_set_prediction_resistance( ctr_drbg_context *ctx, int resistance )
@@ -118,6 +138,7 @@ static int block_cipher_df( unsigned char *output,
     size_t buf_len, use_len;
 
     memset( buf, 0, CTR_DRBG_MAX_SEED_INPUT + CTR_DRBG_BLOCKSIZE + 16 );
+    aes_init( &aes_ctx );
 
     /*
      * Construct IV (16 bytes) and S in buffer
@@ -184,6 +205,8 @@ static int block_cipher_df( unsigned char *output,
         memcpy( p, iv, CTR_DRBG_BLOCKSIZE );
         p += CTR_DRBG_BLOCKSIZE;
     }
+
+    aes_free( &aes_ctx );
 
     return( 0 );
 }
@@ -282,7 +305,7 @@ int ctr_drbg_reseed( ctr_drbg_context *ctx,
 
     return( 0 );
 }
-    
+
 int ctr_drbg_random_with_add( void *p_rng,
                               unsigned char *output, size_t output_len,
                               const unsigned char *additional, size_t add_len )
@@ -332,7 +355,8 @@ int ctr_drbg_random_with_add( void *p_rng,
          */
         aes_crypt_ecb( &ctx->aes_ctx, AES_ENCRYPT, ctx->counter, tmp );
 
-        use_len = (output_len > CTR_DRBG_BLOCKSIZE ) ? CTR_DRBG_BLOCKSIZE : output_len;
+        use_len = ( output_len > CTR_DRBG_BLOCKSIZE ) ? CTR_DRBG_BLOCKSIZE :
+                                                       output_len;
         /*
          * Copy random block to destination
          */
@@ -520,6 +544,6 @@ int ctr_drbg_self_test( int verbose )
 
     return( 0 );
 }
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_CTR_DRBG_C */

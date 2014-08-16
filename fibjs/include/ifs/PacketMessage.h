@@ -1,6 +1,7 @@
 /***************************************************************************
- *   Copyright (C) 2012 by Leo Hoo                                         *
- *   lion@9465.net                                                         *
+ *                                                                         *
+ *   This file was automatically generated using idlc.js                   *
+ *   PLEASE DO NOT EDIT!!!!                                                *
  *                                                                         *
  ***************************************************************************/
 
@@ -23,7 +24,7 @@ class PacketMessage_base : public Message_base
 {
 public:
 	// PacketMessage_base
-	static result_t _new(int32_t maxSize, obj_ptr<PacketMessage_base>& retVal);
+	static result_t _new(int32_t maxSize, obj_ptr<PacketMessage_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_maxSize(int32_t& retVal) = 0;
 	virtual result_t set_maxSize(int32_t newVal) = 0;
 
@@ -89,7 +90,7 @@ namespace fibjs
 
 		OPT_ARG(int32_t, 0, 67108864);
 
-		hr = _new(v0, vr);
+		hr = _new(v0, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

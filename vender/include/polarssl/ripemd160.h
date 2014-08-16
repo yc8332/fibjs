@@ -27,7 +27,11 @@
 #ifndef POLARSSL_RIPEMD160_H
 #define POLARSSL_RIPEMD160_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #include <string.h>
 
@@ -61,6 +65,20 @@ typedef struct
     unsigned char opad[64];     /*!< HMAC: outer padding        */
 }
 ripemd160_context;
+
+/**
+ * \brief          Initialize RIPEMD-160 context
+ *
+ * \param ctx      RIPEMD-160 context to be initialized
+ */
+void ripemd160_init( ripemd160_context *ctx );
+
+/**
+ * \brief          Clear RIPEMD-160 context
+ *
+ * \param ctx      RIPEMD-160 context to be cleared
+ */
+void ripemd160_free( ripemd160_context *ctx );
 
 /**
  * \brief          RIPEMD-160 context setup
